@@ -9,6 +9,8 @@ class AuthController extends ChangeNotifier {
 
   static const String _mensajeCredenciales =
       'No pudimos iniciar sesión. Revisa tu correo y clave e intenta de nuevo.';
+  static const String _mensajeCodigo =
+      'El código de acceso no es válido, ya se usó o venció.';
 
   final AuthRepository _repositorio;
 
@@ -28,31 +30,30 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login({required String email, required String password}) async {
-    _cargando = true;
-    _error = null;
-    _errores = const {};
-    notifyListeners();
+  Future<bool> login({required String email, required String password}) {
+    return _autenticar(
+      () => _repositorio.login(email: email, password: password),
+      (e) => e.status == 500 ? _mensajeCredenciales : e.mensaje,
+    );
+  }
 
-    try {
-      _usuario = await _repositorio.login(email: email, password: password);
-      return true;
-    } on ApiException catch (e) {
-      if (e.errores.isNotEmpty) {
-        _errores = e.errores;
-      } else if (e.status == 500) {
-        _error = _mensajeCredenciales;
-      } else {
-        _error = e.mensaje;
-      }
-      return false;
-    } catch (_) {
-      _error = 'Ocurrió un error inesperado. Intenta de nuevo.';
-      return false;
-    } finally {
-      _cargando = false;
-      notifyListeners();
-    }
+  Future<bool> registrar({
+    required String empresaNombre,
+    required String username,
+    required String email,
+    required String password,
+    required String codigoRegistro,
+  }) {
+    return _autenticar(
+      () => _repositorio.registrar(
+        empresaNombre: empresaNombre,
+        username: username,
+        email: email,
+        password: password,
+        codigoRegistro: codigoRegistro,
+      ),
+      (e) => e.status == 403 ? _mensajeCodigo : e.mensaje,
+    );
   }
 
   Future<void> cerrarSesion() async {
@@ -68,5 +69,33 @@ class AuthController extends ChangeNotifier {
     _error = null;
     _errores = const {};
     notifyListeners();
+  }
+
+  Future<bool> _autenticar(
+    Future<Usuario> Function() accion,
+    String Function(ApiException) mensajePara,
+  ) async {
+    _cargando = true;
+    _error = null;
+    _errores = const {};
+    notifyListeners();
+
+    try {
+      _usuario = await accion();
+      return true;
+    } on ApiException catch (e) {
+      if (e.errores.isNotEmpty) {
+        _errores = e.errores;
+      } else {
+        _error = mensajePara(e);
+      }
+      return false;
+    } catch (_) {
+      _error = 'Ocurrió un error inesperado. Intenta de nuevo.';
+      return false;
+    } finally {
+      _cargando = false;
+      notifyListeners();
+    }
   }
 }

@@ -9,6 +9,7 @@ const Color superficie = Color(0xFFF2F3F5);
 ThemeData construirTema() {
   return ThemeData(
     useMaterial3: true,
+    fontFamily: 'Inter',
     scaffoldBackgroundColor: papel,
     colorScheme: const ColorScheme.light(
       primary: tintaPrincipal,

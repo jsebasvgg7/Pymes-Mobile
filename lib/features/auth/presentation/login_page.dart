@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import 'auth_controller.dart';
+import 'widgets/campo_auth.dart';
+import 'widgets/encabezado_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -36,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
         : (_formatoCorreo.hasMatch(correo)
               ? null
               : 'Escribe un correo con formato válido.');
-    final errorClave = clave.isEmpty ? 'Escribe tu clave.' : null;
+    final errorClave = clave.isEmpty ? 'Escribe tu contraseña.' : null;
 
     setState(() {
       _errorCorreo = errorCorreo;
@@ -59,111 +62,77 @@ class _LoginPageState extends State<LoginPage> {
     context.read<AuthController>().limpiarErrores();
   }
 
-  InputDecoration _decoracion({
-    required String etiqueta,
-    required IconData icono,
-    String? error,
-    Widget? sufijo,
-  }) {
-    final borde = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: linea),
-    );
-    return InputDecoration(
-      labelText: etiqueta,
-      errorText: error,
-      prefixIcon: Icon(icono),
-      suffixIcon: sufijo,
-      enabledBorder: borde,
-      border: borde,
-      focusedBorder: borde.copyWith(
-        borderSide: const BorderSide(color: tintaPrincipal, width: 1.5),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthController>();
     final esquema = Theme.of(context).colorScheme;
-    final errorCorreo = _errorCorreo ?? auth.errores['email'];
-    final errorClave = _errorClave ?? auth.errores['password'];
 
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.storefront_outlined, size: 40),
-                  const SizedBox(height: 16),
+                  const EncabezadoAuth(
+                    pestana: PestanaAuth.login,
+                    titulo: '¡Bienvenido a Pymes ERP!',
+                    subtitulo:
+                        'Gestiona tu punto de venta, inventario y pagos desde un solo lugar.',
+                  ),
+                  const SizedBox(height: 20),
                   Text(
-                    'Inicie sesión en su cuenta',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    'Inicia sesión en tu cuenta',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   const Text(
-                    'Ingrese con el correo de su negocio.',
-                    style: TextStyle(color: textoSecundario),
-                  ),
-                  const SizedBox(height: 28),
-                  TextField(
-                    controller: _correo,
-                    enabled: !auth.cargando,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    autofillHints: const [AutofillHints.email],
-                    onChanged: (_) => _alEditar(true),
-                    decoration: _decoracion(
-                      etiqueta: 'Correo',
-                      icono: Icons.mail_outline,
-                      error: errorCorreo,
-                    ),
+                    'Ingresa con tus credenciales para administrar tu negocio.',
+                    style: TextStyle(color: textoSecundario, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
-                    controller: _clave,
-                    enabled: !auth.cargando,
-                    obscureText: !_verClave,
-                    textInputAction: TextInputAction.done,
-                    autofillHints: const [AutofillHints.password],
-                    onChanged: (_) => _alEditar(false),
-                    onSubmitted: (_) => _enviar(),
-                    decoration: _decoracion(
-                      etiqueta: 'Clave',
-                      icono: Icons.lock_outline,
-                      error: errorClave,
-                      sufijo: IconButton(
-                        tooltip: _verClave ? 'Ocultar clave' : 'Mostrar clave',
-                        icon: Icon(
-                          _verClave
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                        ),
-                        onPressed: () => setState(() => _verClave = !_verClave),
-                      ),
-                    ),
+                  CampoAuth(
+                    controlador: _correo,
+                    etiqueta: 'Correo electrónico',
+                    icono: Icons.mail_outline,
+                    habilitado: !auth.cargando,
+                    tipoTeclado: TextInputType.emailAddress,
+                    pistas: const [AutofillHints.email],
+                    error: _errorCorreo ?? auth.errores['email'],
+                    alCambiar: () => _alEditar(true),
+                  ),
+                  const SizedBox(height: 12),
+                  CampoAuth(
+                    controlador: _clave,
+                    etiqueta: 'Contraseña',
+                    icono: Icons.lock_outline,
+                    habilitado: !auth.cargando,
+                    accion: TextInputAction.done,
+                    pistas: const [AutofillHints.password],
+                    ocultar: !_verClave,
+                    alAlternarVisibilidad: () =>
+                        setState(() => _verClave = !_verClave),
+                    error: _errorClave ?? auth.errores['password'],
+                    alCambiar: () => _alEditar(false),
+                    alEnviar: _enviar,
                   ),
                   if (auth.error != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      auth.error!,
-                      style: TextStyle(color: esquema.error),
-                    ),
+                    const SizedBox(height: 12),
+                    Text(auth.error!, style: TextStyle(color: esquema.error)),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   FilledButton(
                     onPressed: auth.cargando ? null : _enviar,
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
+                      minimumSize: const Size.fromHeight(48),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     child: auth.cargando
@@ -175,7 +144,26 @@ class _LoginPageState extends State<LoginPage> {
                               color: papel,
                             ),
                           )
-                        : const Text('Iniciar sesión'),
+                        : const Text(
+                            'Inicia sesión',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: auth.cargando
+                        ? null
+                        : () => context.go('/registro'),
+                    child: const Text(
+                      '¿No tienes cuenta? Créala aquí',
+                      style: TextStyle(color: tintaPrincipal, fontSize: 13),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Pymes ERP · Tu negocio, más simple',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: textoSecundario, fontSize: 12),
                   ),
                 ],
               ),
