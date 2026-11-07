@@ -6,9 +6,7 @@ import 'models/login_response.dart';
 import 'models/usuario.dart';
 
 class AuthRepository {
-  AuthRepository({required ApiClient cliente, required SessionStorage almacen})
-    : _cliente = cliente,
-      _almacen = almacen;
+  AuthRepository({required this._cliente, required this._almacen});
 
   final ApiClient _cliente;
   final SessionStorage _almacen;

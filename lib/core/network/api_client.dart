@@ -5,8 +5,7 @@ import '../storage/session_storage.dart';
 import 'api_exception.dart';
 
 class ApiClient {
-  ApiClient({required this._almacen, void Function()? alSesionExpirada})
-    : _alSesionExpirada = alSesionExpirada {
+  ApiClient({required this._almacen, this._alSesionExpirada}) {
     dio = Dio(
       BaseOptions(
         baseUrl: Env.apiUrl,
