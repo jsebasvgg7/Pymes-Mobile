@@ -18,79 +18,114 @@ class BienvenidaPage extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
-                    child: SizedBox(
-                      width: 84,
-                      height: 84,
-                      child: ColorFiltered(
-                        colorFilter: const ColorFilter.mode(
-                          tintaPrincipal,
-                          BlendMode.srcIn,
+                  Row(
+                    children: [
+                      Align(
+                        widthFactor: 0.56,
+                        child: SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: ColorFiltered(
+                            colorFilter: const ColorFilter.mode(
+                              tintaPrincipal,
+                              BlendMode.srcIn,
+                            ),
+                            child: Image.asset(
+                              'assets/icon/icon_foreground.png',
+                            ),
+                          ),
                         ),
-                        child: Image.asset('assets/icon/icon_foreground.png'),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Image.asset(
-                    'assets/images/hero-illustration.png',
-                    height: 240,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Tu negocio, más simple',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Gestiona tu punto de venta, inventario y pagos desde un solo lugar.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: textoSecundario,
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  FilledButton(
-                    onPressed: () => _continuar(context, '/login'),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Pymes ERP',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.6,
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Inicia sesión',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
-                    onPressed: () => _continuar(context, '/registro'),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      foregroundColor: tintaPrincipal,
-                      side: const BorderSide(color: linea),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Image.asset(
+                              'assets/images/hero-illustration.png',
+                              height: 320,
+                              fit: BoxFit.contain,
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Tu negocio, más simple',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.4,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Gestiona tu punto de venta, inventario y pagos desde un solo lugar.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: textoSecundario,
+                                fontSize: 13,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            FilledButton(
+                              onPressed: () => _continuar(context, '/login'),
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: const Text(
+                                'Inicia sesión',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton(
+                              onPressed: () => _continuar(context, '/registro'),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48),
+                                foregroundColor: tintaPrincipal,
+                                side: const BorderSide(color: linea),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: const Text(
+                                'Regístrate',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: const Text(
-                      'Regístrate',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
