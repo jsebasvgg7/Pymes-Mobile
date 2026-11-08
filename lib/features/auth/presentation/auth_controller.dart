@@ -9,6 +9,8 @@ class AuthController extends ChangeNotifier {
 
   static const String _mensajeCredenciales =
       'No pudimos iniciar sesión. Revisa tu correo y clave e intenta de nuevo.';
+  static const String _mensajeSesionExpirada =
+      'Tu sesión terminó. Inicia sesión de nuevo.';
   static const String _mensajeCodigo =
       'El código de acceso no es válido, ya se usó o venció.';
 
@@ -17,12 +19,14 @@ class AuthController extends ChangeNotifier {
   Usuario? _usuario;
   bool _cargando = false;
   String? _error;
+  String? _aviso;
   Map<String, String> _errores = const {};
 
   Usuario? get usuario => _usuario;
   bool get cargando => _cargando;
   bool get autenticado => _usuario != null;
   String? get error => _error;
+  String? get aviso => _aviso;
   Map<String, String> get errores => _errores;
 
   Future<void> restaurar() async {
@@ -56,16 +60,28 @@ class AuthController extends ChangeNotifier {
     );
   }
 
+  Future<void> sesionExpirada() async {
+    if (_usuario == null) return;
+    _usuario = null;
+    await _repositorio.cerrarSesion();
+    _error = null;
+    _errores = const {};
+    _aviso = _mensajeSesionExpirada;
+    notifyListeners();
+  }
+
   Future<void> cerrarSesion() async {
     await _repositorio.cerrarSesion();
     _usuario = null;
+    _aviso = null;
     _error = null;
     _errores = const {};
     notifyListeners();
   }
 
   void limpiarErrores() {
-    if (_error == null && _errores.isEmpty) return;
+    if (_error == null && _errores.isEmpty && _aviso == null) return;
+    _aviso = null;
     _error = null;
     _errores = const {};
     notifyListeners();
@@ -76,6 +92,7 @@ class AuthController extends ChangeNotifier {
     String Function(ApiException) mensajePara,
   ) async {
     _cargando = true;
+    _aviso = null;
     _error = null;
     _errores = const {};
     notifyListeners();

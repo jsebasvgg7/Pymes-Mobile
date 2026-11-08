@@ -90,6 +90,32 @@ class _LoginPageState extends State<LoginPage> {
                               titulo: 'Inicia sesión',
                               subtitulo: 'Ingresa con tu correo y contraseña.',
                             ),
+                            if (auth.aviso != null) ...[
+                              const SizedBox(height: 16),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: superficie,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.info_outline,
+                                      size: 18,
+                                      color: textoSecundario,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        auth.aviso!,
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 24),
                             CampoAuth(
                               controlador: _correo,

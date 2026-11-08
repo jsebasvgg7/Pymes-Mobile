@@ -10,10 +10,14 @@ import 'features/auth/presentation/bienvenida_controller.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  late final AuthController auth;
   final almacen = SessionStorage();
-  final cliente = ApiClient(almacen: almacen);
+  final cliente = ApiClient(
+    almacen: almacen,
+    alSesionExpirada: () => auth.sesionExpirada(),
+  );
   final repositorioAuth = AuthRepository(cliente: cliente, almacen: almacen);
-  final auth = AuthController(repositorio: repositorioAuth);
+  auth = AuthController(repositorio: repositorioAuth);
   await auth.restaurar();
   final bienvenida = BienvenidaController(almacen: almacen);
   await bienvenida.cargar();
