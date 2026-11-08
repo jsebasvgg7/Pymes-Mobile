@@ -6,6 +6,7 @@ import '../../../app/theme.dart';
 import 'auth_controller.dart';
 import 'widgets/campo_auth.dart';
 import 'widgets/encabezado_auth.dart';
+import 'widgets/marca_auth.dart';
 
 class RegistroPage extends StatefulWidget {
   const RegistroPage({super.key});
@@ -21,11 +22,9 @@ class _RegistroPageState extends State<RegistroPage> {
   final TextEditingController _usuario = TextEditingController();
   final TextEditingController _correo = TextEditingController();
   final TextEditingController _clave = TextEditingController();
-  final TextEditingController _confirmacion = TextEditingController();
   final TextEditingController _codigo = TextEditingController();
 
   bool _verClave = false;
-  bool _verConfirmacion = false;
   bool _verCodigo = false;
   Map<String, String> _locales = {};
 
@@ -35,7 +34,6 @@ class _RegistroPageState extends State<RegistroPage> {
     _usuario.dispose();
     _correo.dispose();
     _clave.dispose();
-    _confirmacion.dispose();
     _codigo.dispose();
     super.dispose();
   }
@@ -60,9 +58,6 @@ class _RegistroPageState extends State<RegistroPage> {
     }
     if (_clave.text.length < 6) {
       errores['password'] = 'La contraseña debe tener mínimo 6 caracteres.';
-    }
-    if (_confirmacion.text != _clave.text) {
-      errores['confirmacion'] = 'Las contraseñas no coinciden.';
     }
     if (codigo.isEmpty) {
       errores['codigoRegistro'] = 'Escribe el código de acceso.';
@@ -105,134 +100,132 @@ class _RegistroPageState extends State<RegistroPage> {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const EncabezadoAuth(
-                    pestana: PestanaAuth.registro,
-                    titulo: '¡Registra tu negocio!',
-                    subtitulo:
-                        'Empieza a gestionar tu operación desde un solo lugar.',
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Crea tu cuenta aquí',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Ingresa el código de acceso que te entregamos y registra tu negocio en minutos.',
-                    style: TextStyle(color: textoSecundario, fontSize: 13),
-                  ),
-                  const SizedBox(height: 16),
-                  CampoAuth(
-                    controlador: _empresa,
-                    etiqueta: 'Nombre de tu negocio',
-                    icono: Icons.business_outlined,
-                    habilitado: !ocupado,
-                    error: error('empresaNombre'),
-                    alCambiar: () => _alEditar('empresaNombre'),
-                  ),
-                  const SizedBox(height: 12),
-                  CampoAuth(
-                    controlador: _usuario,
-                    etiqueta: 'Nombre de usuario',
-                    icono: Icons.person_outline,
-                    habilitado: !ocupado,
-                    pistas: const [AutofillHints.newUsername],
-                    error: error('username'),
-                    alCambiar: () => _alEditar('username'),
-                  ),
-                  const SizedBox(height: 12),
-                  CampoAuth(
-                    controlador: _correo,
-                    etiqueta: 'Correo electrónico',
-                    icono: Icons.mail_outline,
-                    habilitado: !ocupado,
-                    tipoTeclado: TextInputType.emailAddress,
-                    pistas: const [AutofillHints.email],
-                    error: error('email'),
-                    alCambiar: () => _alEditar('email'),
-                  ),
-                  const SizedBox(height: 12),
-                  CampoAuth(
-                    controlador: _clave,
-                    etiqueta: 'Contraseña',
-                    icono: Icons.lock_outline,
-                    habilitado: !ocupado,
-                    pistas: const [AutofillHints.newPassword],
-                    ocultar: !_verClave,
-                    alAlternarVisibilidad: () =>
-                        setState(() => _verClave = !_verClave),
-                    error: error('password'),
-                    alCambiar: () => _alEditar('password'),
-                  ),
-                  const SizedBox(height: 12),
-                  CampoAuth(
-                    controlador: _confirmacion,
-                    etiqueta: 'Confirma tu contraseña',
-                    icono: Icons.lock_outline,
-                    habilitado: !ocupado,
-                    ocultar: !_verConfirmacion,
-                    alAlternarVisibilidad: () =>
-                        setState(() => _verConfirmacion = !_verConfirmacion),
-                    error: error('confirmacion'),
-                    alCambiar: () => _alEditar('confirmacion'),
-                  ),
-                  const SizedBox(height: 12),
-                  CampoAuth(
-                    controlador: _codigo,
-                    etiqueta: 'Código que te entregamos',
-                    icono: Icons.key_outlined,
-                    habilitado: !ocupado,
-                    accion: TextInputAction.done,
-                    ocultar: !_verCodigo,
-                    alAlternarVisibilidad: () =>
-                        setState(() => _verCodigo = !_verCodigo),
-                    error: error('codigoRegistro'),
-                    alCambiar: () => _alEditar('codigoRegistro'),
-                    alEnviar: _enviar,
-                  ),
-                  if (auth.error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(auth.error!, style: TextStyle(color: esquema.error)),
-                  ],
-                  const SizedBox(height: 18),
-                  FilledButton(
-                    onPressed: ocupado ? null : _enviar,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: ocupado
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: papel,
+                  const MarcaAuth(),
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const EncabezadoAuth(
+                              titulo: 'Crea tu cuenta',
+                              subtitulo:
+                                  'Ingresa el código que te entregamos para registrar tu negocio.',
                             ),
-                          )
-                        : const Text(
-                            'Crear cuenta',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                          ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: ocupado ? null : () => context.go('/login'),
-                    child: const Text(
-                      '¿Ya tienes cuenta? Inicia sesión',
-                      style: TextStyle(color: tintaPrincipal, fontSize: 13),
+                            const SizedBox(height: 24),
+                            CampoAuth(
+                              controlador: _empresa,
+                              etiqueta: 'Nombre de tu negocio',
+                              icono: Icons.business_outlined,
+                              habilitado: !ocupado,
+                              error: error('empresaNombre'),
+                              alCambiar: () => _alEditar('empresaNombre'),
+                            ),
+                            const SizedBox(height: 12),
+                            CampoAuth(
+                              controlador: _usuario,
+                              etiqueta: 'Nombre de usuario',
+                              icono: Icons.person_outline,
+                              habilitado: !ocupado,
+                              pistas: const [AutofillHints.newUsername],
+                              error: error('username'),
+                              alCambiar: () => _alEditar('username'),
+                            ),
+                            const SizedBox(height: 12),
+                            CampoAuth(
+                              controlador: _correo,
+                              etiqueta: 'Correo electrónico',
+                              icono: Icons.mail_outline,
+                              habilitado: !ocupado,
+                              tipoTeclado: TextInputType.emailAddress,
+                              pistas: const [AutofillHints.email],
+                              error: error('email'),
+                              alCambiar: () => _alEditar('email'),
+                            ),
+                            const SizedBox(height: 12),
+                            CampoAuth(
+                              controlador: _clave,
+                              etiqueta: 'Contraseña',
+                              icono: Icons.lock_outline,
+                              habilitado: !ocupado,
+                              pistas: const [AutofillHints.newPassword],
+                              ocultar: !_verClave,
+                              alAlternarVisibilidad: () =>
+                                  setState(() => _verClave = !_verClave),
+                              error: error('password'),
+                              alCambiar: () => _alEditar('password'),
+                            ),
+                            const SizedBox(height: 12),
+                            CampoAuth(
+                              controlador: _codigo,
+                              etiqueta: 'Código que te entregamos',
+                              icono: Icons.key_outlined,
+                              habilitado: !ocupado,
+                              accion: TextInputAction.done,
+                              ocultar: !_verCodigo,
+                              alAlternarVisibilidad: () =>
+                                  setState(() => _verCodigo = !_verCodigo),
+                              error: error('codigoRegistro'),
+                              alCambiar: () => _alEditar('codigoRegistro'),
+                              alEnviar: _enviar,
+                            ),
+                            if (auth.error != null) ...[
+                              const SizedBox(height: 12),
+                              Text(
+                                auth.error!,
+                                style: TextStyle(color: esquema.error),
+                              ),
+                            ],
+                            const SizedBox(height: 20),
+                            FilledButton(
+                              onPressed: ocupado ? null : _enviar,
+                              style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: ocupado
+                                  ? const SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: papel,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Crear cuenta',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton(
+                              onPressed: ocupado
+                                  ? null
+                                  : () => context.go('/login'),
+                              child: const Text(
+                                '¿Ya tienes cuenta? Inicia sesión',
+                                style: TextStyle(
+                                  color: tintaPrincipal,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],

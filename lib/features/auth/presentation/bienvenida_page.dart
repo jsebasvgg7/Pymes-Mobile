@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
 import 'bienvenida_controller.dart';
+import 'widgets/marca_auth.dart';
 
 class BienvenidaPage extends StatelessWidget {
   const BienvenidaPage({super.key});
@@ -25,35 +26,7 @@ class BienvenidaPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Align(
-                        widthFactor: 0.56,
-                        child: SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: ColorFiltered(
-                            colorFilter: const ColorFilter.mode(
-                              tintaPrincipal,
-                              BlendMode.srcIn,
-                            ),
-                            child: Image.asset(
-                              'assets/icon/icon_foreground.png',
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Pymes ERP',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.6,
-                        ),
-                      ),
-                    ],
-                  ),
+                  const MarcaAuth(),
                   Expanded(
                     child: Center(
                       child: SingleChildScrollView(
