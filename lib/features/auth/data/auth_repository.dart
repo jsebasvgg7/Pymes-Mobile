@@ -5,6 +5,8 @@ import '../../../core/storage/session_storage.dart';
 import 'models/login_response.dart';
 import 'models/usuario.dart';
 
+typedef CredencialesRecordadas = ({String correo, String clave});
+
 class AuthRepository {
   AuthRepository({required this._cliente, required this._almacen});
 
@@ -58,6 +60,24 @@ class AuthRepository {
   }
 
   Future<void> cerrarSesion() => _almacen.borrar();
+
+  Future<CredencialesRecordadas?> leerRecordadas() async {
+    try {
+      final correo = await _almacen.leerCorreoRecordado();
+      final clave = await _almacen.leerClaveRecordada();
+      if (correo == null || correo.isEmpty || clave == null || clave.isEmpty) {
+        return null;
+      }
+      return (correo: correo, clave: clave);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> recordar(String correo, String clave) =>
+      _almacen.guardarRecordadas(correo, clave);
+
+  Future<void> olvidarRecordadas() => _almacen.olvidarRecordadas();
 
   Future<Usuario> _guardarSesion(dynamic datos) async {
     final respuesta = LoginResponse.fromJson(datos as Map<String, dynamic>);

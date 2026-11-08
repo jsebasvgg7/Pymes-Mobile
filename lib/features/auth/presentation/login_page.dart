@@ -21,8 +21,22 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _correo = TextEditingController();
   final TextEditingController _clave = TextEditingController();
   bool _verClave = false;
+  bool _recordar = false;
   String? _errorCorreo;
   String? _errorClave;
+
+  @override
+  void initState() {
+    super.initState();
+    final auth = context.read<AuthController>();
+    final correo = auth.correoRecordado;
+    final clave = auth.claveRecordada;
+    if (correo != null && clave != null) {
+      _correo.text = correo;
+      _clave.text = clave;
+      _recordar = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -49,7 +63,11 @@ class _LoginPageState extends State<LoginPage> {
     if (errorCorreo != null || errorClave != null) return;
 
     FocusScope.of(context).unfocus();
-    await context.read<AuthController>().login(email: correo, password: clave);
+    await context.read<AuthController>().login(
+      email: correo,
+      password: clave,
+      recordar: _recordar,
+    );
   }
 
   void _alEditar(bool esCorreo) {
@@ -141,6 +159,58 @@ class _LoginPageState extends State<LoginPage> {
                               error: _errorClave ?? auth.errores['password'],
                               alCambiar: () => _alEditar(false),
                               alEnviar: _enviar,
+                            ),
+                            const SizedBox(height: 12),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: auth.cargando
+                                  ? null
+                                  : () => setState(() => _recordar = !_recordar),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: Checkbox(
+                                        value: _recordar,
+                                        onChanged: auth.cargando
+                                            ? null
+                                            : (v) => setState(
+                                                () => _recordar = v ?? false,
+                                              ),
+                                        fillColor:
+                                            WidgetStateProperty.resolveWith(
+                                              (estados) =>
+                                                  estados.contains(
+                                                    WidgetState.selected,
+                                                  )
+                                                  ? tintaPrincipal
+                                                  : superficie,
+                                            ),
+                                        checkColor: papel,
+                                        side: BorderSide.none,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        materialTapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    const Text(
+                                      'Recordar mis datos',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: textoSecundario,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                             if (auth.error != null) ...[
                               const SizedBox(height: 12),
