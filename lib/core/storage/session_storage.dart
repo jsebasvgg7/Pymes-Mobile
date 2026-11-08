@@ -6,6 +6,7 @@ class SessionStorage {
 
   static const String _claveToken = 'token';
   static const String _claveUsuario = 'usuario';
+  static const String _claveBienvenida = 'bienvenida_vista';
 
   final FlutterSecureStorage _almacen;
 
@@ -17,6 +18,12 @@ class SessionStorage {
   Future<String?> leerToken() => _almacen.read(key: _claveToken);
 
   Future<String?> leerUsuarioJson() => _almacen.read(key: _claveUsuario);
+
+  Future<bool> bienvenidaVista() async =>
+      await _almacen.read(key: _claveBienvenida) == '1';
+
+  Future<void> marcarBienvenidaVista() =>
+      _almacen.write(key: _claveBienvenida, value: '1');
 
   Future<void> borrar() async {
     await _almacen.delete(key: _claveToken);

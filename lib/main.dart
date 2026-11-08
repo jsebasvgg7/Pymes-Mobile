@@ -5,6 +5,7 @@ import 'core/network/api_client.dart';
 import 'core/storage/session_storage.dart';
 import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/auth_controller.dart';
+import 'features/auth/presentation/bienvenida_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,8 @@ Future<void> main() async {
   final repositorioAuth = AuthRepository(cliente: cliente, almacen: almacen);
   final auth = AuthController(repositorio: repositorioAuth);
   await auth.restaurar();
+  final bienvenida = BienvenidaController(almacen: almacen);
+  await bienvenida.cargar();
 
   runApp(
     App(
@@ -21,6 +24,7 @@ Future<void> main() async {
       cliente: cliente,
       repositorioAuth: repositorioAuth,
       auth: auth,
+      bienvenida: bienvenida,
     ),
   );
 }

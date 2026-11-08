@@ -6,6 +6,7 @@ import '../core/network/api_client.dart';
 import '../core/storage/session_storage.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../features/auth/presentation/auth_controller.dart';
+import '../features/auth/presentation/bienvenida_controller.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -16,19 +17,21 @@ class App extends StatefulWidget {
     required this.cliente,
     required this.repositorioAuth,
     required this.auth,
+    required this.bienvenida,
   });
 
   final SessionStorage almacen;
   final ApiClient cliente;
   final AuthRepository repositorioAuth;
   final AuthController auth;
+  final BienvenidaController bienvenida;
 
   @override
   State<App> createState() => _AppState();
 }
 
 class _AppState extends State<App> {
-  late final GoRouter _router = construirRouter(widget.auth);
+  late final GoRouter _router = construirRouter(widget.auth, widget.bienvenida);
 
   @override
   void dispose() {
@@ -44,6 +47,7 @@ class _AppState extends State<App> {
         Provider<ApiClient>.value(value: widget.cliente),
         Provider<AuthRepository>.value(value: widget.repositorioAuth),
         ChangeNotifierProvider<AuthController>.value(value: widget.auth),
+        Provider<BienvenidaController>.value(value: widget.bienvenida),
       ],
       child: MaterialApp.router(
         title: 'Pymes ERP',

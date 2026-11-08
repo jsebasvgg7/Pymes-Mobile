@@ -27,6 +27,7 @@ flutter:
 
   assets:
     - assets/icon/icon_foreground.png
+    - assets/images/hero-illustration.png
 
   fonts:
     - family: Inter
