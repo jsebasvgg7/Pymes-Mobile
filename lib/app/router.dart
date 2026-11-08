@@ -6,8 +6,8 @@ import '../features/auth/presentation/bienvenida_controller.dart';
 import '../features/auth/presentation/bienvenida_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/registro_page.dart';
+import '../features/dashboard/presentation/dashboard_page.dart';
 import 'shell/shell_page.dart';
-import 'theme.dart';
 
 GoRouter construirRouter(AuthController auth, BienvenidaController bienvenida) {
   return GoRouter(
@@ -29,12 +29,7 @@ GoRouter construirRouter(AuthController auth, BienvenidaController bienvenida) {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const Center(
-              child: Text(
-                'Resumen del negocio: próxima casilla',
-                style: TextStyle(color: textoSecundario),
-              ),
-            ),
+            builder: (context, state) => const DashboardPage(),
           ),
         ],
       ),

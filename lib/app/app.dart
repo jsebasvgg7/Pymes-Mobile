@@ -8,6 +8,7 @@ import '../core/storage/session_storage.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/auth/presentation/bienvenida_controller.dart';
+import '../features/dashboard/data/dashboard_repository.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -19,6 +20,7 @@ class App extends StatefulWidget {
     required this.repositorioAuth,
     required this.auth,
     required this.bienvenida,
+    required this.repositorioDashboard,
   });
 
   final SessionStorage almacen;
@@ -26,6 +28,7 @@ class App extends StatefulWidget {
   final AuthRepository repositorioAuth;
   final AuthController auth;
   final BienvenidaController bienvenida;
+  final DashboardRepository repositorioDashboard;
 
   @override
   State<App> createState() => _AppState();
@@ -49,6 +52,7 @@ class _AppState extends State<App> {
         Provider<AuthRepository>.value(value: widget.repositorioAuth),
         ChangeNotifierProvider<AuthController>.value(value: widget.auth),
         Provider<BienvenidaController>.value(value: widget.bienvenida),
+        Provider<DashboardRepository>.value(value: widget.repositorioDashboard),
       ],
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
