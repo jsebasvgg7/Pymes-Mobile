@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 
@@ -21,7 +22,7 @@ class CampoAuth extends StatelessWidget {
 
   final TextEditingController controlador;
   final String etiqueta;
-  final IconData icono;
+  final List<List<dynamic>> icono;
   final String? error;
   final bool habilitado;
   final TextInputType? tipoTeclado;
@@ -60,15 +61,23 @@ class CampoAuth extends StatelessWidget {
         filled: true,
         fillColor: superficie,
         contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        prefixIcon: Icon(icono, color: textoSecundario, size: 20),
+        prefixIcon: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: HugeIcon(icon: icono, color: textoSecundario, size: 20),
+          ),
+        ),
         suffixIcon: alAlternarVisibilidad == null
             ? null
             : IconButton(
                 tooltip: oculto ? 'Mostrar' : 'Ocultar',
-                icon: Icon(
-                  oculto
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
+                icon: HugeIcon(
+                  icon: oculto
+                      ? HugeIcons.strokeRoundedViewOff
+                      : HugeIcons.strokeRoundedView,
                   color: textoSecundario,
                   size: 20,
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
@@ -118,8 +119,9 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(
-                                      Icons.info_outline,
+                                    const HugeIcon(
+                                      icon:
+                                          HugeIcons.strokeRoundedInformationCircle,
                                       size: 18,
                                       color: textoSecundario,
                                     ),
@@ -138,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                             CampoAuth(
                               controlador: _correo,
                               etiqueta: 'Correo electrónico',
-                              icono: Icons.mail_outline,
+                              icono: HugeIcons.strokeRoundedMail01,
                               habilitado: !auth.cargando,
                               tipoTeclado: TextInputType.emailAddress,
                               pistas: const [AutofillHints.email],
@@ -149,7 +151,7 @@ class _LoginPageState extends State<LoginPage> {
                             CampoAuth(
                               controlador: _clave,
                               etiqueta: 'Contraseña',
-                              icono: Icons.lock_outline,
+                              icono: HugeIcons.strokeRoundedLockPassword,
                               habilitado: !auth.cargando,
                               accion: TextInputAction.done,
                               pistas: const [AutofillHints.password],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../features/auth/presentation/auth_controller.dart';
@@ -42,7 +43,11 @@ class InicioTemporal extends StatelessWidget {
               const Spacer(),
               OutlinedButton.icon(
                 onPressed: auth.cerrarSesion,
-                icon: const Icon(Icons.logout),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedLogout01,
+                  color: tintaPrincipal,
+                  size: 20,
+                ),
                 label: const Text('Cerrar sesión'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(52),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
@@ -124,7 +125,7 @@ class _RegistroPageState extends State<RegistroPage> {
                             CampoAuth(
                               controlador: _empresa,
                               etiqueta: 'Nombre de tu negocio',
-                              icono: Icons.business_outlined,
+                              icono: HugeIcons.strokeRoundedBuilding03,
                               habilitado: !ocupado,
                               error: error('empresaNombre'),
                               alCambiar: () => _alEditar('empresaNombre'),
@@ -133,7 +134,7 @@ class _RegistroPageState extends State<RegistroPage> {
                             CampoAuth(
                               controlador: _usuario,
                               etiqueta: 'Nombre de usuario',
-                              icono: Icons.person_outline,
+                              icono: HugeIcons.strokeRoundedUser,
                               habilitado: !ocupado,
                               pistas: const [AutofillHints.newUsername],
                               error: error('username'),
@@ -143,7 +144,7 @@ class _RegistroPageState extends State<RegistroPage> {
                             CampoAuth(
                               controlador: _correo,
                               etiqueta: 'Correo electrónico',
-                              icono: Icons.mail_outline,
+                              icono: HugeIcons.strokeRoundedMail01,
                               habilitado: !ocupado,
                               tipoTeclado: TextInputType.emailAddress,
                               pistas: const [AutofillHints.email],
@@ -154,7 +155,7 @@ class _RegistroPageState extends State<RegistroPage> {
                             CampoAuth(
                               controlador: _clave,
                               etiqueta: 'Contraseña',
-                              icono: Icons.lock_outline,
+                              icono: HugeIcons.strokeRoundedLockPassword,
                               habilitado: !ocupado,
                               pistas: const [AutofillHints.newPassword],
                               ocultar: !_verClave,
@@ -167,7 +168,7 @@ class _RegistroPageState extends State<RegistroPage> {
                             CampoAuth(
                               controlador: _codigo,
                               etiqueta: 'Código que te entregamos',
-                              icono: Icons.key_outlined,
+                              icono: HugeIcons.strokeRoundedKey01,
                               habilitado: !ocupado,
                               accion: TextInputAction.done,
                               ocultar: !_verCodigo,
