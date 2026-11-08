@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../features/auth/data/models/usuario.dart';
+import '../navegacion/recortar_nombre.dart';
 import '../theme.dart';
 import 'avatar_usuario.dart';
 import 'hoja_administracion.dart';
@@ -68,19 +69,25 @@ class CabeceraShell extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  'Bienvenido, ${usuario.username}',
+                  'Bienvenido, ${recortarNombre(usuario.username)}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(height: 2),
                 Text(
                   etiquetaHoy(DateTime.now()),
-                  style: const TextStyle(fontSize: 13, color: textoSecundario),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: textoSecundario,
+                    letterSpacing: -0.1,
+                    height: 1.2,
+                  ),
                 ),
               ],
             ),

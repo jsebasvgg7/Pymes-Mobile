@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -49,11 +50,20 @@ class _AppState extends State<App> {
         ChangeNotifierProvider<AuthController>.value(value: widget.auth),
         Provider<BienvenidaController>.value(value: widget.bienvenida),
       ],
-      child: MaterialApp.router(
-        title: 'Pymes ERP',
-        debugShowCheckedModeBanner: false,
-        theme: construirTema(),
-        routerConfig: _router,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: papel,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: papel,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
+        child: MaterialApp.router(
+          title: 'Pymes ERP',
+          debugShowCheckedModeBanner: false,
+          theme: construirTema(),
+          routerConfig: _router,
+        ),
       ),
     );
   }

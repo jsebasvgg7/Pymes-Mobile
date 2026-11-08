@@ -23,29 +23,30 @@ class BarraInferior extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 22),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: Container(
-                height: 64,
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: superficie,
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: linea),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    for (final destino in destinos)
-                      _ItemBarra(
-                        destino: destino,
-                        activo: destino.id == activoId,
-                        alTocar: () => alTocarDestino(destino),
-                      ),
+            Container(
+              height: 56,
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: superficie,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: linea),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < destinos.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    _ItemBarra(
+                      destino: destinos[i],
+                      activo: destinos[i].id == activoId,
+                      alTocar: () => alTocarDestino(destinos[i]),
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
             const SizedBox(width: 12),
@@ -59,8 +60,8 @@ class BarraInferior extends StatelessWidget {
                   customBorder: const CircleBorder(),
                   onTap: alTocarMas,
                   child: const SizedBox(
-                    width: 56,
-                    height: 56,
+                    width: 52,
+                    height: 52,
                     child: Center(
                       child: HugeIcon(
                         icon: HugeIcons.strokeRoundedAdd01,
@@ -100,8 +101,8 @@ class _ItemBarra extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: alTocar,
         child: Container(
-          width: 52,
-          height: 52,
+          width: 46,
+          height: 46,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
