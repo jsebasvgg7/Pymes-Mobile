@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/auth/presentation/auth_controller.dart';
@@ -5,7 +6,8 @@ import '../features/auth/presentation/bienvenida_controller.dart';
 import '../features/auth/presentation/bienvenida_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/registro_page.dart';
-import 'inicio_temporal.dart';
+import 'shell/shell_page.dart';
+import 'theme.dart';
 
 GoRouter construirRouter(AuthController auth, BienvenidaController bienvenida) {
   return GoRouter(
@@ -21,7 +23,21 @@ GoRouter construirRouter(AuthController auth, BienvenidaController bienvenida) {
       return enAcceso ? null : '/login';
     },
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const InicioTemporal()),
+      ShellRoute(
+        builder: (context, state, child) =>
+            ShellPage(rutaActual: state.matchedLocation, child: child),
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const Center(
+              child: Text(
+                'Resumen del negocio: próxima casilla',
+                style: TextStyle(color: textoSecundario),
+              ),
+            ),
+          ),
+        ],
+      ),
       GoRoute(
         path: '/bienvenida',
         builder: (context, state) => const BienvenidaPage(),
