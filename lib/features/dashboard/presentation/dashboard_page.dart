@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
+import '../../../app/navegacion/abrir_destino.dart';
+import '../../../app/navegacion/destinos.dart';
 import '../../../app/theme.dart';
 import '../../../core/format/moneda.dart';
 import '../../../core/widgets/estado_carga.dart';
@@ -11,7 +14,6 @@ import '../data/models/dashboard_resumen.dart';
 import 'dashboard_controller.dart';
 import 'widgets/panel_cajas.dart';
 import 'widgets/panel_ingresos_egresos.dart';
-import 'widgets/panel_stock.dart';
 import 'widgets/tarjeta_indicador.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -100,75 +102,83 @@ class _Contenido extends StatelessWidget {
   Widget build(BuildContext context) {
     final ventas = controlador.ventasHoy;
     final actualizado = controlador.actualizadoEn;
+
+    void ir(String id) {
+      final destino = destinoPorId(id);
+      if (destino != null) abrirDestino(context, destino);
+    }
+
     final tarjetas = <Widget>[
-      TarjetaIndicador(
-        titulo: 'Saldo total en cajas',
-        valor: formatearMoneda(resumen.saldoTotalCajas),
-      ),
       if (ventas != null)
         TarjetaIndicador(
+          icono: HugeIcons.strokeRoundedMoney03,
           titulo: 'Ventas de hoy',
           valor: formatearMoneda(ventas.total),
           detalle: ventas.cantidad == 1 ? '1 venta' : '${ventas.cantidad} ventas',
+          destacada: true,
+          alTocar: () => ir('pos'),
         )
       else
-        const TarjetaIndicador(
+        TarjetaIndicador(
+          icono: HugeIcons.strokeRoundedMoney03,
           titulo: 'Ventas de hoy',
           valor: 'No disponible',
+          destacada: true,
           atenuado: true,
+          alTocar: () => ir('pos'),
         ),
       TarjetaIndicador(
+        icono: HugeIcons.strokeRoundedAlert02,
         titulo: 'Stock bajo',
         valor: '${resumen.productosStockBajo}',
         detalle: resumen.productosSinStock > 0
             ? '${resumen.productosSinStock} sin stock'
             : null,
+        alTocar: () => ir('inventario'),
       ),
       TarjetaIndicador(
-        titulo: 'Clientes registrados',
+        icono: HugeIcons.strokeRoundedUserGroup,
+        titulo: 'Clientes',
         valor: '${resumen.totalClientes}',
+        alTocar: () => ir('clientes'),
       ),
       TarjetaIndicador(
-        titulo: 'Productos registrados',
+        icono: HugeIcons.strokeRoundedPackage,
+        titulo: 'Productos',
         valor: '${resumen.totalProductos}',
+        alTocar: () => ir('productos'),
       ),
     ];
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(top: 16, bottom: 24),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
-        SizedBox(
-          height: 124,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: tarjetas.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (_, i) => tarjetas[i],
-          ),
+        Row(
+          children: [
+            Expanded(child: tarjetas[0]),
+            const SizedBox(width: 12),
+            Expanded(child: tarjetas[1]),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-          child: PanelCajas(cajas: resumen.cajas),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(child: tarjetas[2]),
+            const SizedBox(width: 12),
+            Expanded(child: tarjetas[3]),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-          child: PanelIngresosEgresos(
-            ingresos: resumen.totalIngresos,
-            egresos: resumen.totalEgresos,
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-          child: PanelStock(
-            stockBajo: resumen.productosStockBajo,
-            sinStock: resumen.productosSinStock,
-          ),
+        const SizedBox(height: 24),
+        PanelCajas(cajas: resumen.cajas, total: resumen.saldoTotalCajas),
+        const SizedBox(height: 16),
+        PanelIngresosEgresos(
+          ingresos: resumen.totalIngresos,
+          egresos: resumen.totalEgresos,
         ),
         if (actualizado != null)
           Padding(
-            padding: const EdgeInsets.only(top: 16),
+            padding: const EdgeInsets.only(top: 24),
             child: Text(
               'Actualizado a las ${formatearHora(actualizado)}',
               textAlign: TextAlign.center,

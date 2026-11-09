@@ -31,7 +31,7 @@ class BarraInferior extends StatelessWidget {
               height: 56,
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
-                color: superficie,
+                color: papel,
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(color: linea),
               ),
@@ -106,8 +106,7 @@ class _ItemBarra extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: activo ? papel : Colors.transparent,
-            border: activo ? Border.all(color: linea) : null,
+            color: activo ? superficie : Colors.transparent,
           ),
           child: HugeIcon(
             icon: destino.icono,

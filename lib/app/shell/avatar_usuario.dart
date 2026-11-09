@@ -3,10 +3,16 @@ import 'package:flutter/material.dart';
 import '../theme.dart';
 
 class AvatarUsuario extends StatelessWidget {
-  const AvatarUsuario({super.key, required this.username, this.tamano = 44});
+  const AvatarUsuario({
+    super.key,
+    required this.username,
+    this.tamano = 44,
+    this.fondo = superficie,
+  });
 
   final String username;
   final double tamano;
+  final Color fondo;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +25,7 @@ class AvatarUsuario extends StatelessWidget {
       height: tamano,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: superficie,
+        color: fondo,
         shape: BoxShape.circle,
         border: Border.all(color: linea),
       ),

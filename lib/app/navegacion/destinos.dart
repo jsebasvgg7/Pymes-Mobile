@@ -115,6 +115,15 @@ List<Destino> destinosDe(GrupoDestino grupo) {
   return destinos.where((d) => d.grupo == grupo).toList();
 }
 
+Destino? destinoPorId(String id) {
+  for (final d in destinos) {
+    if (d.id == id) {
+      return d;
+    }
+  }
+  return null;
+}
+
 Destino? destinoPorRuta(String ruta) {
   for (final d in destinos) {
     if (d.ruta == ruta) {

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/auth/presentation/auth_controller.dart';
 import '../navegacion/abrir_destino.dart';
 import '../navegacion/destino.dart';
 import '../navegacion/destinos.dart';
+import '../theme.dart';
 import 'barra_inferior.dart';
 import 'buscador_page.dart';
 import 'cabecera_shell.dart';
@@ -21,22 +23,32 @@ class ShellPage extends StatelessWidget {
     final usuario = context.watch<AuthController>().usuario;
     if (usuario == null) return const SizedBox.shrink();
 
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            CabeceraShell(usuario: usuario),
-            BarraBusqueda(onTap: () => _abrirBuscador(context)),
-            Expanded(child: child),
-          ],
-        ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: superficie,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: superficie,
+        systemNavigationBarIconBrightness: Brightness.dark,
       ),
-      bottomNavigationBar: BarraInferior(
-        destinos: destinosDe(GrupoDestino.barra),
-        activoId: destinoPorRuta(rutaActual)?.id,
-        alTocarDestino: (destino) => abrirDestino(context, destino),
-        alTocarMas: () => mostrarMenuMas(context),
+      child: Scaffold(
+        backgroundColor: superficie,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              CabeceraShell(usuario: usuario),
+              BarraBusqueda(onTap: () => _abrirBuscador(context)),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+        bottomNavigationBar: BarraInferior(
+          destinos: destinosDe(GrupoDestino.barra),
+          activoId: destinoPorRuta(rutaActual)?.id,
+          alTocarDestino: (destino) => abrirDestino(context, destino),
+          alTocarMas: () => mostrarMenuMas(context),
+        ),
       ),
     );
   }

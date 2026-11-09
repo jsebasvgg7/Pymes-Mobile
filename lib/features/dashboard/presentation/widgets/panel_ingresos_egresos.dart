@@ -26,7 +26,7 @@ class PanelIngresosEgresos extends StatelessWidget {
           proporcion: mayor > 0 ? (ingresos / mayor).toDouble() : 0,
           color: tintaPrincipal,
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
         _Barra(
           etiqueta: 'Egresos',
           valor: egresos,
@@ -61,12 +61,12 @@ class _Barra extends StatelessWidget {
             Expanded(
               child: Text(
                 etiqueta,
-                style: const TextStyle(fontSize: 14, color: textoSecundario),
+                style: const TextStyle(fontSize: 13, color: textoSecundario),
               ),
             ),
             Text(
               formatearMoneda(valor),
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
           ],
         ),

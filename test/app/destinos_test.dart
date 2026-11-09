@@ -40,6 +40,12 @@ void main() {
     expect(disponibles.toList(), ['inicio']);
   });
 
+  test('destinoPorId encuentra destinos y desconoce otros ids', () {
+    expect(destinoPorId('inventario')?.nombre, 'Inventario');
+    expect(destinoPorId('pos')?.id, 'pos');
+    expect(destinoPorId('no-existe'), isNull);
+  });
+
   test('destinoPorRuta encuentra Inicio y desconoce otras rutas', () {
     expect(destinoPorRuta('/')?.id, 'inicio');
     expect(destinoPorRuta('/otra'), isNull);

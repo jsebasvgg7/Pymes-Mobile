@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/auth/presentation/auth_controller.dart';
@@ -19,7 +18,9 @@ GoRouter construirRouter(AuthController auth, BienvenidaController bienvenida) {
       if (auth.autenticado) {
         return enAcceso || ruta == '/bienvenida' ? '/' : null;
       }
-      if (!bienvenida.vista) return ruta == '/bienvenida' ? null : '/bienvenida';
+      if (!bienvenida.vista) {
+        return ruta == '/bienvenida' ? null : '/bienvenida';
+      }
       return enAcceso ? null : '/login';
     },
     routes: [

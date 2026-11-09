@@ -97,7 +97,7 @@ class CabeceraShell extends StatelessWidget {
             label: 'Perfil',
             child: GestureDetector(
               onTap: () => mostrarHojaPerfil(context, usuario),
-              child: AvatarUsuario(username: usuario.username),
+              child: AvatarUsuario(username: usuario.username, fondo: papel),
             ),
           ),
         ],
