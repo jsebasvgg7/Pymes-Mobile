@@ -23,6 +23,22 @@ class MovimientoCaja {
     return esIngreso ? 'Ingreso' : 'Egreso';
   }
 
+  String get titulo {
+    final base = concepto;
+    final indice = base.indexOf('#');
+    if (indice <= 0) return base;
+    final antes = base.substring(0, indice).trim();
+    return antes.isEmpty ? base : antes;
+  }
+
+  String? get codigo {
+    final base = concepto;
+    final indice = base.indexOf('#');
+    if (indice <= 0) return null;
+    final resto = base.substring(indice).trim();
+    return resto.length > 1 ? resto : null;
+  }
+
   factory MovimientoCaja.fromJson(Map<String, dynamic> json) {
     return MovimientoCaja(
       id: aNumero(json['id']).toInt(),

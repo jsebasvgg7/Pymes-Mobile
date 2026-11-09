@@ -28,8 +28,10 @@ class PanelMovimientos extends StatelessWidget {
         else if (lista.isEmpty)
           const _Aviso('Aún no hay movimientos registrados.')
         else
-          for (final movimiento in lista)
-            FilaMovimiento(movimiento: movimiento),
+          for (var i = 0; i < lista.length; i++) ...[
+            if (i > 0) const Divider(height: 1, thickness: 1, color: linea),
+            FilaMovimiento(movimiento: lista[i]),
+          ],
       ],
     );
   }

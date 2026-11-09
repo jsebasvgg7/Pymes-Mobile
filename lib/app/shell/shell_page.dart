@@ -32,6 +32,7 @@ class ShellPage extends StatelessWidget {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
+        extendBody: true,
         backgroundColor: superficie,
         body: SafeArea(
           bottom: false,

@@ -14,19 +14,20 @@ class FilaMovimiento extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fecha = movimiento.fecha;
+    final codigo = movimiento.codigo;
     final detalle = [
       if (movimiento.cajaNombre.isNotEmpty) movimiento.cajaNombre,
-      if (fecha != null) etiquetaMovimiento(fecha, DateTime.now()),
+      if (codigo != null) codigo,
     ].join(' · ');
     final signo = movimiento.esIngreso ? '+' : '-';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             alignment: Alignment.center,
             decoration: const BoxDecoration(
               color: superficie,
@@ -37,7 +38,7 @@ class FilaMovimiento extends StatelessWidget {
                   ? HugeIcons.strokeRoundedArrowDownLeft01
                   : HugeIcons.strokeRoundedArrowUpRight01,
               color: tintaPrincipal,
-              size: 16,
+              size: 18,
             ),
           ),
           const SizedBox(width: 12),
@@ -46,15 +47,16 @@ class FilaMovimiento extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  movimiento.concepto,
-                  maxLines: 1,
+                  movimiento.titulo,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (detalle.isNotEmpty)
+                if (detalle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
                   Text(
                     detalle,
                     maxLines: 1,
@@ -64,13 +66,31 @@ class FilaMovimiento extends StatelessWidget {
                       color: textoSecundario,
                     ),
                   ),
+                ],
               ],
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            '$signo${formatearMoneda(movimiento.monto)}',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '$signo${formatearMoneda(movimiento.monto)}',
+                maxLines: 1,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (fecha != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  etiquetaMovimiento(fecha, DateTime.now()),
+                  maxLines: 1,
+                  style: const TextStyle(fontSize: 12, color: textoSecundario),
+                ),
+              ],
+            ],
           ),
         ],
       ),

@@ -54,4 +54,49 @@ void main() {
     expect(MovimientoCaja.listaDesdePagina([]), isEmpty);
     expect(MovimientoCaja.listaDesdePagina(null), isEmpty);
   });
+
+  test('separa el título del código de la factura', () {
+    final venta = MovimientoCaja.fromJson({
+      'tipo': 'INGRESO',
+      'descripcion': 'Venta factura #FAC-20261109-00123',
+    });
+    expect(venta.titulo, 'Venta factura');
+    expect(venta.codigo, '#FAC-20261109-00123');
+    final compra = MovimientoCaja.fromJson({
+      'tipo': 'EGRESO',
+      'descripcion': 'Compra #COM-2026-0004',
+    });
+    expect(compra.titulo, 'Compra');
+    expect(compra.codigo, '#COM-2026-0004');
+  });
+
+  test('sin código el título es el concepto completo', () {
+    final manual = MovimientoCaja.fromJson({
+      'tipo': 'EGRESO',
+      'descripcion': 'Pago de arriendo',
+    });
+    expect(manual.titulo, 'Pago de arriendo');
+    expect(manual.codigo, isNull);
+    final vacio = MovimientoCaja.fromJson({'tipo': 'INGRESO'});
+    expect(vacio.titulo, 'Ingreso');
+    expect(vacio.codigo, isNull);
+  });
+
+  test('un concepto que empieza con # no se parte', () {
+    final m = MovimientoCaja.fromJson({
+      'tipo': 'INGRESO',
+      'descripcion': '#FAC-1',
+    });
+    expect(m.titulo, '#FAC-1');
+    expect(m.codigo, isNull);
+  });
+
+  test('un # suelto al final no deja código vacío', () {
+    final m = MovimientoCaja.fromJson({
+      'tipo': 'INGRESO',
+      'descripcion': 'Venta #',
+    });
+    expect(m.titulo, 'Venta');
+    expect(m.codigo, isNull);
+  });
 }

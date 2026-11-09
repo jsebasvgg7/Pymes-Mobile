@@ -4,6 +4,10 @@ import 'package:hugeicons/hugeicons.dart';
 import '../navegacion/destino.dart';
 import '../theme.dart';
 
+const List<BoxShadow> _sombra = [
+  BoxShadow(color: Color(0x14000000), blurRadius: 16, offset: Offset(0, 4)),
+];
+
 class BarraInferior extends StatelessWidget {
   const BarraInferior({
     super.key,
@@ -34,6 +38,7 @@ class BarraInferior extends StatelessWidget {
                 color: papel,
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(color: linea),
+                boxShadow: _sombra,
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -53,20 +58,26 @@ class BarraInferior extends StatelessWidget {
             Semantics(
               button: true,
               label: 'Más opciones',
-              child: Material(
-                color: tintaPrincipal,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: alTocarMas,
-                  child: const SizedBox(
-                    width: 52,
-                    height: 52,
-                    child: Center(
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedAdd01,
-                        color: papel,
-                        size: 24,
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: _sombra,
+                ),
+                child: Material(
+                  color: tintaPrincipal,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: alTocarMas,
+                    child: const SizedBox(
+                      width: 52,
+                      height: 52,
+                      child: Center(
+                        child: HugeIcon(
+                          icon: HugeIcons.strokeRoundedAdd01,
+                          color: papel,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),
