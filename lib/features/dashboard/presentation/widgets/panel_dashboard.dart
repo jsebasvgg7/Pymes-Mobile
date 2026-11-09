@@ -2,17 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
 
-class PanelDashboard extends StatelessWidget {
-  const PanelDashboard({
-    super.key,
-    required this.titulo,
-    required this.hijos,
-    this.destacado,
-  });
+class TarjetaPanel extends StatelessWidget {
+  const TarjetaPanel({super.key, required this.child});
 
-  final String titulo;
-  final List<Widget> hijos;
-  final String? destacado;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +23,26 @@ class PanelDashboard extends StatelessWidget {
           ),
         ],
       ),
+      child: child,
+    );
+  }
+}
+
+class PanelDashboard extends StatelessWidget {
+  const PanelDashboard({
+    super.key,
+    required this.titulo,
+    required this.hijos,
+    this.accion,
+  });
+
+  final String titulo;
+  final List<Widget> hijos;
+  final Widget? accion;
+
+  @override
+  Widget build(BuildContext context) {
+    return TarjetaPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -38,55 +51,19 @@ class PanelDashboard extends StatelessWidget {
               Expanded(
                 child: Text(
                   titulo,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              if (destacado != null)
-                Text(
-                  destacado!,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              if (accion != null) accion!,
             ],
           ),
           const SizedBox(height: 12),
           ...hijos,
-        ],
-      ),
-    );
-  }
-}
-
-class FilaPanel extends StatelessWidget {
-  const FilaPanel({super.key, required this.etiqueta, required this.valor});
-
-  final String etiqueta;
-  final String valor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              etiqueta,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, color: textoSecundario),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            valor,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
         ],
       ),
     );

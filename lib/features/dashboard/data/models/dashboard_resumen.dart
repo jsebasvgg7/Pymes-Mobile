@@ -1,3 +1,6 @@
+import '../../../../core/format/fecha.dart';
+import '../../../../core/format/numero.dart';
+
 class CajaResumen {
   const CajaResumen({
     required this.id,
@@ -17,9 +20,9 @@ class CajaResumen {
     return CajaResumen(
       id: _entero(json['cajaId']),
       nombre: (json['cajaNombre'] as String?)?.trim() ?? '',
-      saldoActual: _numero(json['saldoActual']),
-      totalIngresos: _numero(json['totalIngresos']),
-      totalEgresos: _numero(json['totalEgresos']),
+      saldoActual: aNumero(json['saldoActual']),
+      totalIngresos: aNumero(json['totalIngresos']),
+      totalEgresos: aNumero(json['totalEgresos']),
     );
   }
 }
@@ -59,28 +62,14 @@ class DashboardResumen {
       productosStockBajo: _entero(json['productosStockBajo']),
       productosSinStock: _entero(json['productosSinStock']),
       totalCajas: _entero(json['totalCajas']),
-      saldoTotalCajas: _numero(json['saldoTotalCajas']),
+      saldoTotalCajas: aNumero(json['saldoTotalCajas']),
       cajas: lista
           .whereType<Map<String, dynamic>>()
           .map(CajaResumen.fromJson)
           .toList(),
-      fechaConsulta: _fecha(json['fechaConsulta']),
+      fechaConsulta: parsearFechaIso(json['fechaConsulta']),
     );
   }
 }
 
-num _numero(dynamic valor) {
-  if (valor is num) return valor;
-  return num.tryParse('$valor') ?? 0;
-}
-
-int _entero(dynamic valor) => _numero(valor).toInt();
-
-DateTime? _fecha(dynamic valor) {
-  if (valor is! String || valor.isEmpty) return null;
-  final recortada = valor.replaceFirstMapped(
-    RegExp(r'(\.\d{6})\d+'),
-    (m) => m.group(1)!,
-  );
-  return DateTime.tryParse(recortada);
-}
+int _entero(dynamic valor) => aNumero(valor).toInt();

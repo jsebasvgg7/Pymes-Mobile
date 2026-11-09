@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pymes_erp_mobile/core/network/api_exception.dart';
 import 'package:pymes_erp_mobile/features/dashboard/data/dashboard_repository.dart';
 import 'package:pymes_erp_mobile/features/dashboard/data/models/dashboard_resumen.dart';
+import 'package:pymes_erp_mobile/features/dashboard/data/models/flujo_dia.dart';
+import 'package:pymes_erp_mobile/features/dashboard/data/models/movimiento_caja.dart';
 import 'package:pymes_erp_mobile/features/dashboard/data/models/ventas_hoy.dart';
 import 'package:pymes_erp_mobile/features/dashboard/presentation/dashboard_controller.dart';
 
@@ -38,10 +40,14 @@ DashboardDatos _datos({
   int clientes = 8,
   DateTime? fecha,
   VentasHoy? ventas = const VentasHoy(cantidad: 2, total: 8000),
+  List<FlujoDia>? flujo = const [],
+  List<MovimientoCaja>? movimientos = const [],
 }) {
   return DashboardDatos(
     resumen: _resumen(clientes: clientes, fecha: fecha),
     ventasHoy: ventas,
+    flujo: flujo,
+    movimientos: movimientos,
   );
 }
 
@@ -163,5 +169,65 @@ void main() {
     c.dispose();
     espera.complete(_datos());
     await carga;
+  });
+
+  test('la serie del flujo es diaria por defecto y cambia a semanal', () async {
+    final c = construir(
+      _RepoFalso(
+        (_) async => _datos(
+          flujo: [
+            FlujoDia(fecha: DateTime(2026, 11, 8), ingreso: 100, egreso: 20),
+          ],
+        ),
+      ),
+    );
+    await c.cargar();
+    expect(c.periodoFlujo, PeriodoFlujo.diario);
+    expect(c.serieFlujo!.length, 7);
+    expect(c.serieFlujo!.last.ingreso, 100);
+
+    var avisos = 0;
+    c.addListener(() => avisos++);
+    c.cambiarPeriodo(PeriodoFlujo.semanal);
+    expect(c.periodoFlujo, PeriodoFlujo.semanal);
+    expect(c.serieFlujo!.length, 4);
+    expect(c.serieFlujo!.last.ingreso, 100);
+    expect(avisos, 1);
+
+    c.cambiarPeriodo(PeriodoFlujo.semanal);
+    expect(avisos, 1);
+  });
+
+  test('si fallan el flujo y los movimientos, el resto se muestra', () async {
+    final c = construir(
+      _RepoFalso((_) async => _datos(flujo: null, movimientos: null)),
+    );
+    await c.cargar();
+    expect(c.estado, EstadoDashboard.listo);
+    expect(c.serieFlujo, isNull);
+    expect(c.movimientos, isNull);
+    expect(c.resumen, isNotNull);
+  });
+
+  test('expone los movimientos recientes', () async {
+    final c = construir(
+      _RepoFalso(
+        (_) async => _datos(
+          movimientos: [
+            const MovimientoCaja(
+              id: 1,
+              fecha: null,
+              esIngreso: true,
+              monto: 5000,
+              descripcion: 'Venta',
+              cajaNombre: 'Caja',
+            ),
+          ],
+        ),
+      ),
+    );
+    await c.cargar();
+    expect(c.movimientos!.length, 1);
+    expect(c.movimientos!.first.monto, 5000);
   });
 }

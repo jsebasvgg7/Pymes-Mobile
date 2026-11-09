@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../app/navegacion/abrir_destino.dart';
 import '../../../app/navegacion/destinos.dart';
 import '../../../app/theme.dart';
+import '../../../core/format/fecha.dart';
 import '../../../core/format/moneda.dart';
 import '../../../core/widgets/estado_carga.dart';
 import '../../../core/widgets/estado_error.dart';
@@ -12,8 +13,8 @@ import '../../auth/presentation/auth_controller.dart';
 import '../data/dashboard_repository.dart';
 import '../data/models/dashboard_resumen.dart';
 import 'dashboard_controller.dart';
-import 'widgets/panel_cajas.dart';
-import 'widgets/panel_ingresos_egresos.dart';
+import 'widgets/panel_flujo_caja.dart';
+import 'widgets/panel_movimientos.dart';
 import 'widgets/tarjeta_indicador.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -31,12 +32,6 @@ class DashboardPage extends StatelessWidget {
       child: const _VistaDashboard(),
     );
   }
-}
-
-String formatearHora(DateTime fecha) {
-  final hora = fecha.hour.toString().padLeft(2, '0');
-  final minuto = fecha.minute.toString().padLeft(2, '0');
-  return '$hora:$minuto';
 }
 
 class _VistaDashboard extends StatelessWidget {
@@ -170,11 +165,17 @@ class _Contenido extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 24),
-        PanelCajas(cajas: resumen.cajas, total: resumen.saldoTotalCajas),
+        PanelFlujoCaja(
+          saldoTotal: resumen.saldoTotalCajas,
+          totalCajas: resumen.totalCajas,
+          serie: controlador.serieFlujo,
+          periodo: controlador.periodoFlujo,
+          alCambiarPeriodo: controlador.cambiarPeriodo,
+        ),
         const SizedBox(height: 16),
-        PanelIngresosEgresos(
-          ingresos: resumen.totalIngresos,
-          egresos: resumen.totalEgresos,
+        PanelMovimientos(
+          movimientos: controlador.movimientos,
+          alVerTodo: () => ir('caja'),
         ),
         if (actualizado != null)
           Padding(

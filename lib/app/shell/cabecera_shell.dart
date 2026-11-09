@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
+import '../../core/format/fecha.dart';
 import '../../features/auth/data/models/usuario.dart';
 import '../navegacion/recortar_nombre.dart';
 import '../theme.dart';
@@ -8,24 +9,9 @@ import 'avatar_usuario.dart';
 import 'hoja_administracion.dart';
 import 'hoja_perfil.dart';
 
-const List<String> _meses = [
-  'Ene',
-  'Feb',
-  'Mar',
-  'Abr',
-  'May',
-  'Jun',
-  'Jul',
-  'Ago',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dic',
-];
-
 String etiquetaHoy(DateTime ahora) {
   final dia = ahora.day.toString().padLeft(2, '0');
-  return 'Hoy $dia ${_meses[ahora.month - 1]}';
+  return 'Hoy $dia ${mesCorto(ahora.month)}';
 }
 
 class CabeceraShell extends StatelessWidget {

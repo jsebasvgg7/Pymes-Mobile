@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import '../../../core/network/api_exception.dart';
 import '../data/dashboard_repository.dart';
 import '../data/models/dashboard_resumen.dart';
+import '../data/models/flujo_dia.dart';
+import '../data/models/movimiento_caja.dart';
 import '../data/models/ventas_hoy.dart';
 
 enum EstadoDashboard { cargando, listo, error }
@@ -21,6 +23,9 @@ class DashboardController extends ChangeNotifier {
   EstadoDashboard _estado = EstadoDashboard.cargando;
   DashboardResumen? _resumen;
   VentasHoy? _ventasHoy;
+  List<FlujoDia>? _flujo;
+  List<MovimientoCaja>? _movimientos;
+  PeriodoFlujo _periodoFlujo = PeriodoFlujo.diario;
   DateTime? _actualizadoEn;
   String? _error;
   bool _liberado = false;
@@ -28,7 +33,16 @@ class DashboardController extends ChangeNotifier {
   EstadoDashboard get estado => _estado;
   DashboardResumen? get resumen => _resumen;
   VentasHoy? get ventasHoy => _ventasHoy;
+  List<MovimientoCaja>? get movimientos => _movimientos;
+  PeriodoFlujo get periodoFlujo => _periodoFlujo;
   DateTime? get actualizadoEn => _actualizadoEn;
+
+  List<PuntoFlujo>? get serieFlujo {
+    final flujo = _flujo;
+    if (flujo == null) return null;
+    return construirSerie(flujo, _periodoFlujo, _ahora());
+  }
+
   String? get error => _error;
 
   Future<void> cargar() async {
@@ -40,11 +54,19 @@ class DashboardController extends ChangeNotifier {
 
   Future<bool> refrescar() => _consultar();
 
+  void cambiarPeriodo(PeriodoFlujo periodo) {
+    if (periodo == _periodoFlujo) return;
+    _periodoFlujo = periodo;
+    _notificar();
+  }
+
   Future<bool> _consultar() async {
     try {
       final datos = await _repositorio.obtener(empresaId);
       _resumen = datos.resumen;
       _ventasHoy = datos.ventasHoy;
+      _flujo = datos.flujo;
+      _movimientos = datos.movimientos;
       _actualizadoEn = datos.resumen.fechaConsulta ?? _ahora();
       _estado = EstadoDashboard.listo;
       _error = null;
