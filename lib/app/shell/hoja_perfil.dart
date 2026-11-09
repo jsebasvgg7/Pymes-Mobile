@@ -21,7 +21,11 @@ Future<void> mostrarHojaPerfil(BuildContext context, Usuario usuario) {
         children: [
           Row(
             children: [
-              AvatarUsuario(username: usuario.username, tamano: 56),
+              AvatarUsuario(
+                username: usuario.username,
+                semilla: usuario.email,
+                tamano: 56,
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

@@ -17,7 +17,7 @@ class FilaMovimiento extends StatelessWidget {
     final codigo = movimiento.codigo;
     final detalle = [
       if (movimiento.cajaNombre.isNotEmpty) movimiento.cajaNombre,
-      if (codigo != null) codigo,
+      ?codigo,
     ].join(' · ');
     final signo = movimiento.esIngreso ? '+' : '-';
 
