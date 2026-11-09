@@ -2,6 +2,8 @@ import 'package:hugeicons/hugeicons.dart';
 
 import 'destino.dart';
 
+const String rutaInventarioStockBajo = '/inventario?filtro=stock-bajo';
+
 const List<Destino> destinos = [
   Destino(
     id: 'inicio',
@@ -30,6 +32,7 @@ const List<Destino> destinos = [
     nombre: 'Inventario',
     icono: HugeIcons.strokeRoundedPackage,
     grupo: GrupoDestino.barra,
+    ruta: '/inventario',
     sinonimos: ['stock', 'existencias', 'ajuste', 'bodega'],
   ),
   Destino(

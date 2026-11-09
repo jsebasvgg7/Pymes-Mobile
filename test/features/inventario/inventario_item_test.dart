@@ -6,6 +6,7 @@ Map<String, dynamic> _json({
   Object? stockBajo = false,
   Object? unidad = 'UNIDAD',
   Object? categoria = 'Bebidas',
+  Object? minimo = 5,
 }) {
   return {
     'id': 1,
@@ -17,7 +18,7 @@ Map<String, dynamic> _json({
     'unidadMedida': unidad,
     'cantidadActual': cantidad,
     'costoPromedio': 3200.5,
-    'stockMinimo': 5,
+    'stockMinimo': minimo,
     'precioVenta': 4500,
     'stockBajo': stockBajo,
   };
@@ -70,8 +71,30 @@ void main() {
       expect(InventarioItem.fromJson(_json()).estado, EstadoStock.disponible);
     });
 
-    test('bajo cuando el backend marca stockBajo con existencias', () {
+    test('bajo cuando la cantidad es menor al mínimo', () {
       final item = InventarioItem.fromJson(_json(cantidad: 3, stockBajo: true));
+      expect(item.estado, EstadoStock.bajo);
+    });
+
+    test('bajo aunque el backend no marque stockBajo', () {
+      final item = InventarioItem.fromJson(_json(cantidad: 4));
+      expect(item.estado, EstadoStock.bajo);
+    });
+
+    test('una cantidad igual al mínimo no es stock bajo', () {
+      final item = InventarioItem.fromJson(_json(cantidad: 5, stockBajo: true));
+      expect(item.estado, EstadoStock.disponible);
+    });
+
+    test('con mínimo cero nunca es stock bajo mientras haya existencias', () {
+      final item = InventarioItem.fromJson(_json(cantidad: 1, minimo: 0));
+      expect(item.estado, EstadoStock.disponible);
+    });
+
+    test('decimales por debajo del mínimo son stock bajo', () {
+      final item = InventarioItem.fromJson(
+        _json(cantidad: 4.999, unidad: 'KILOGRAMO'),
+      );
       expect(item.estado, EstadoStock.bajo);
     });
 

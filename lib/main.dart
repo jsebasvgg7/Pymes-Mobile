@@ -7,6 +7,7 @@ import 'features/auth/data/auth_repository.dart';
 import 'features/auth/presentation/auth_controller.dart';
 import 'features/auth/presentation/bienvenida_controller.dart';
 import 'features/dashboard/data/dashboard_repository.dart';
+import 'features/inventario/data/inventario_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,7 @@ Future<void> main() async {
       auth: auth,
       bienvenida: bienvenida,
       repositorioDashboard: DashboardRepository(cliente: cliente),
+      repositorioInventario: InventarioRepository(cliente: cliente),
     ),
   );
 }

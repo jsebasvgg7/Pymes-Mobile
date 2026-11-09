@@ -40,7 +40,7 @@ class InventarioItem {
 
   EstadoStock get estado {
     if (cantidadActual <= 0) return EstadoStock.agotado;
-    if (stockBajo) return EstadoStock.bajo;
+    if (cantidadActual < stockMinimo) return EstadoStock.bajo;
     return EstadoStock.disponible;
   }
 

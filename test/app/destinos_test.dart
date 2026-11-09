@@ -35,9 +35,9 @@ void main() {
     ]);
   });
 
-  test('solo Inicio está disponible en esta casilla', () {
+  test('Inicio e Inventario están disponibles en esta casilla', () {
     final disponibles = destinos.where((d) => d.disponible).map((d) => d.id);
-    expect(disponibles.toList(), ['inicio']);
+    expect(disponibles.toList(), ['inicio', 'inventario']);
   });
 
   test('destinoPorId encuentra destinos y desconoce otros ids', () {
@@ -46,8 +46,9 @@ void main() {
     expect(destinoPorId('no-existe'), isNull);
   });
 
-  test('destinoPorRuta encuentra Inicio y desconoce otras rutas', () {
+  test('destinoPorRuta encuentra Inicio e Inventario y desconoce otras rutas', () {
     expect(destinoPorRuta('/')?.id, 'inicio');
+    expect(destinoPorRuta('/inventario')?.id, 'inventario');
     expect(destinoPorRuta('/otra'), isNull);
   });
 }

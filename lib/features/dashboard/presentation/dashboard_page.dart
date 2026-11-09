@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
@@ -129,7 +130,7 @@ class _Contenido extends StatelessWidget {
         detalle: resumen.productosSinStock > 0
             ? '${resumen.productosSinStock} sin stock'
             : null,
-        alTocar: () => ir('inventario'),
+        alTocar: () => context.go(rutaInventarioStockBajo),
       ),
       TarjetaIndicador(
         icono: HugeIcons.strokeRoundedUserGroup,
