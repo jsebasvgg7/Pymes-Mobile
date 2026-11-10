@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/widgets/carga_marca.dart';
 import 'auth_controller.dart';
 import 'widgets/campo_auth.dart';
 import 'widgets/encabezado_auth.dart';
@@ -195,13 +196,10 @@ class _RegistroPageState extends State<RegistroPage> {
                                 ),
                               ),
                               child: ocupado
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: papel,
-                                      ),
+                                  ? const CargaMarca(
+                                      tamano: 22,
+                                      color: papel,
+                                      conBarrido: false,
                                     )
                                   : const Text(
                                       'Crear cuenta',

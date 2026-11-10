@@ -28,6 +28,7 @@ flutter:
 
   assets:
     - assets/icon/icon_foreground.png
+    - assets/icon/icon_marca.png
     - assets/images/hero-illustration.png
 
   fonts:

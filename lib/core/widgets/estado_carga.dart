@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
-import '../../app/theme.dart';
+import 'carga_marca.dart';
 
 class EstadoCarga extends StatelessWidget {
-  const EstadoCarga({super.key});
+  const EstadoCarga({super.key, this.tamano = 64});
+
+  final double tamano;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: SizedBox(
-        width: 28,
-        height: 28,
-        child: CircularProgressIndicator(strokeWidth: 2.5, color: tintaPrincipal),
-      ),
+    return Column(
+      children: [
+        const Spacer(flex: 7),
+        CargaMarca(tamano: tamano),
+        const Spacer(flex: 13),
+      ],
     );
   }
 }
