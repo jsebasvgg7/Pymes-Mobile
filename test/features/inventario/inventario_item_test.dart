@@ -81,8 +81,21 @@ void main() {
       expect(item.estado, EstadoStock.bajo);
     });
 
-    test('una cantidad igual al mínimo no es stock bajo', () {
+    test('una cantidad igual al mínimo sí es stock bajo', () {
       final item = InventarioItem.fromJson(_json(cantidad: 5, stockBajo: true));
+      expect(item.estado, EstadoStock.bajo);
+    });
+
+    test('el criterio coincide con el de la web: bajo si cantidad <= mínimo', () {
+      for (final cantidad in [1, 4.99, 5]) {
+        final item = InventarioItem.fromJson(_json(cantidad: cantidad));
+        expect(
+          item.estado,
+          EstadoStock.bajo,
+          reason: 'cantidad $cantidad con mínimo 5',
+        );
+      }
+      final item = InventarioItem.fromJson(_json(cantidad: 5.01));
       expect(item.estado, EstadoStock.disponible);
     });
 

@@ -241,15 +241,16 @@ void main() {
       expect(_nombres(controlador), ['Arroz', 'Leche']);
     });
 
-    test('una cantidad igual al mínimo no entra en Stock bajo', () async {
+    test('una cantidad igual al mínimo entra en Stock bajo', () async {
       final controlador = await construir(
         items: [
           _item(1, 'Justo', cantidad: 5, minimo: 5),
           _item(2, 'Debajo', cantidad: 4, minimo: 5),
+          _item(3, 'Encima', cantidad: 6, minimo: 5),
         ],
       );
       controlador.filtrar(FiltroStock.stockBajo);
-      expect(_nombres(controlador), ['Debajo']);
+      expect(_nombres(controlador), ['Debajo', 'Justo']);
     });
 
     test('Sin stock muestra solo los agotados', () async {
