@@ -8,6 +8,7 @@ Future<T?> mostrarHojaInferior<T>({
 }) {
   return showModalBottomSheet<T>(
     context: context,
+    useRootNavigator: true,
     backgroundColor: papel,
     elevation: 0,
     showDragHandle: true,
