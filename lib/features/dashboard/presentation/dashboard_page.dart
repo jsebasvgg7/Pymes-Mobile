@@ -3,8 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
+import '../../../app/navegacion/abrir_buscador.dart';
 import '../../../app/navegacion/abrir_destino.dart';
 import '../../../app/navegacion/destinos.dart';
+import '../../../app/shell/barra_busqueda.dart';
 import '../../../app/theme.dart';
 import '../../../core/format/fecha.dart';
 import '../../../core/format/moneda.dart';
@@ -155,6 +157,8 @@ class _Contenido extends StatelessWidget {
         24 + MediaQuery.paddingOf(context).bottom,
       ),
       children: [
+        BarraBusqueda(onTap: () => abrirBuscador(context)),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(child: tarjetas[0]),

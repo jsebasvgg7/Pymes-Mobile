@@ -22,7 +22,7 @@ class BarraFiltros extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 6),
       child: Row(
         children: [
           Expanded(child: _CampoBusqueda(campo: campo, alCambiar: alBuscar)),

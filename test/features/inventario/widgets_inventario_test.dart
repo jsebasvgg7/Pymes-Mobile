@@ -4,6 +4,7 @@ import 'package:pymes_erp_mobile/app/theme.dart';
 import 'package:pymes_erp_mobile/features/inventario/data/inventario_repository.dart';
 import 'package:pymes_erp_mobile/features/inventario/data/models/inventario_item.dart';
 import 'package:pymes_erp_mobile/features/inventario/presentation/inventario_controller.dart';
+import 'package:pymes_erp_mobile/features/inventario/presentation/widgets/barra_filtros.dart';
 import 'package:pymes_erp_mobile/features/inventario/presentation/widgets/hoja_filtros.dart';
 import 'package:pymes_erp_mobile/features/inventario/presentation/widgets/hoja_orden.dart';
 import 'package:pymes_erp_mobile/features/inventario/presentation/widgets/insignia_stock.dart';
@@ -211,6 +212,33 @@ void main() {
 
       expect(controlador.orden, OrdenInventario.menorStock);
       expect(find.text('Ordenar por'), findsNothing);
+    });
+
+    testWidgets('la barra de filtros deja un margen inferior de 6 px', (
+      tester,
+    ) async {
+      final controlador = await _controlador();
+      await tester.pumpWidget(
+        _envolver(
+          BarraFiltros(
+            campo: TextEditingController(),
+            alBuscar: (_) {},
+            alFiltrar: () {},
+            alOrdenar: () {},
+            filtrosActivos: false,
+          ),
+        ),
+      );
+
+      final relleno = tester.widget<Padding>(
+        find.descendant(
+          of: find.byType(BarraFiltros),
+          matching: find.byType(Padding),
+        ).first,
+      );
+
+      expect(relleno.padding, const EdgeInsets.fromLTRB(20, 16, 20, 6));
+      expect(controlador.filtro, FiltroStock.todos);
     });
   });
 }
