@@ -25,7 +25,7 @@ class DashboardController extends ChangeNotifier {
   VentasHoy? _ventasHoy;
   List<FlujoDia>? _flujo;
   List<MovimientoCaja>? _movimientos;
-  PeriodoFlujo _periodoFlujo = PeriodoFlujo.diario;
+  PeriodoFlujo _periodoFlujo = PeriodoFlujo.semanal;
   DateTime? _actualizadoEn;
   String? _error;
   bool _liberado = false;

@@ -171,7 +171,7 @@ void main() {
     await carga;
   });
 
-  test('la serie del flujo es diaria por defecto y cambia a semanal', () async {
+  test('la serie del flujo es semanal por defecto y cambia a diaria', () async {
     final c = construir(
       _RepoFalso(
         (_) async => _datos(
@@ -182,19 +182,19 @@ void main() {
       ),
     );
     await c.cargar();
-    expect(c.periodoFlujo, PeriodoFlujo.diario);
-    expect(c.serieFlujo!.length, 7);
+    expect(c.periodoFlujo, PeriodoFlujo.semanal);
+    expect(c.serieFlujo!.length, 4);
     expect(c.serieFlujo!.last.ingreso, 100);
 
     var avisos = 0;
     c.addListener(() => avisos++);
-    c.cambiarPeriodo(PeriodoFlujo.semanal);
-    expect(c.periodoFlujo, PeriodoFlujo.semanal);
-    expect(c.serieFlujo!.length, 4);
+    c.cambiarPeriodo(PeriodoFlujo.diario);
+    expect(c.periodoFlujo, PeriodoFlujo.diario);
+    expect(c.serieFlujo!.length, 7);
     expect(c.serieFlujo!.last.ingreso, 100);
     expect(avisos, 1);
 
-    c.cambiarPeriodo(PeriodoFlujo.semanal);
+    c.cambiarPeriodo(PeriodoFlujo.diario);
     expect(avisos, 1);
   });
 
