@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/format/cantidad.dart';
 import '../../../../core/format/moneda.dart';
-import '../../data/models/inventario_item.dart';
+import '../../../../core/productos/producto_inventario.dart';
 import 'insignia_stock.dart';
 
 class TarjetaProducto extends StatelessWidget {
   const TarjetaProducto({super.key, required this.item});
 
-  final InventarioItem item;
+  final ProductoInventario item;
 
   @override
   Widget build(BuildContext context) {

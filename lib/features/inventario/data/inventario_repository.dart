@@ -1,15 +1,15 @@
 import '../../../core/network/api_client.dart';
-import 'models/inventario_item.dart';
+import '../../../core/productos/producto_inventario.dart';
 
 class InventarioRepository {
   InventarioRepository({required this._cliente});
 
   final ApiClient _cliente;
 
-  Future<List<InventarioItem>> listar(int empresaId) async {
+  Future<List<ProductoInventario>> listar(int empresaId) async {
     final respuesta = await _cliente.get(
       '/api/inventario/listar-por-empresa/$empresaId',
     );
-    return InventarioItem.listaDesdeJson(respuesta);
+    return ProductoInventario.listaDesdeJson(respuesta);
   }
 }

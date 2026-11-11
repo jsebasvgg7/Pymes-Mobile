@@ -37,6 +37,21 @@ String formatearDiaMes(DateTime fecha) {
   return '${_dosDigitos(fecha.day)} ${mesCorto(fecha.month)}';
 }
 
+String formatearFechaLarga(DateTime fecha) {
+  return '${_dosDigitos(fecha.day)}/${_dosDigitos(fecha.month)}/${fecha.year}';
+}
+
+String formatearHora12(DateTime fecha) {
+  final hora = fecha.hour % 12 == 0 ? 12 : fecha.hour % 12;
+  final minuto = _dosDigitos(fecha.minute);
+  final sufijo = fecha.hour < 12 ? 'a. m.' : 'p. m.';
+  return '$hora:$minuto $sufijo';
+}
+
+String formatearFechaYHora12(DateTime fecha) {
+  return '${formatearFechaLarga(fecha)} ${formatearHora12(fecha)}';
+}
+
 DateTime soloFecha(DateTime fecha) {
   return DateTime(fecha.year, fecha.month, fecha.day);
 }

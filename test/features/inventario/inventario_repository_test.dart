@@ -6,7 +6,7 @@ import 'package:pymes_erp_mobile/core/network/api_client.dart';
 import 'package:pymes_erp_mobile/core/network/api_exception.dart';
 import 'package:pymes_erp_mobile/core/storage/session_storage.dart';
 import 'package:pymes_erp_mobile/features/inventario/data/inventario_repository.dart';
-import 'package:pymes_erp_mobile/features/inventario/data/models/inventario_item.dart';
+import 'package:pymes_erp_mobile/core/productos/producto_inventario.dart';
 
 class _Almacen extends SessionStorage {
   @override
@@ -74,7 +74,7 @@ void main() {
     expect(lista.length, 2);
     expect(lista.first.nombre, 'Gaseosa');
     expect(lista.first.estado, EstadoStock.disponible);
-    expect(lista.last.categoria, InventarioItem.sinCategoria);
+    expect(lista.last.categoria, ProductoInventario.sinCategoria);
     expect(lista.last.cantidadActual, 2.5);
     expect(lista.last.permiteDecimales, isTrue);
     expect(lista.last.estado, EstadoStock.bajo);

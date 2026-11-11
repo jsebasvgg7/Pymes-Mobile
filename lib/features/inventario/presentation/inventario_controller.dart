@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../../app/navegacion/busqueda_destinos.dart';
 import '../../../core/network/api_exception.dart';
 import '../data/inventario_repository.dart';
-import '../data/models/inventario_item.dart';
+import '../../../core/productos/producto_inventario.dart';
 
 enum EstadoInventario { cargando, listo, error }
 
@@ -33,7 +33,7 @@ class _Entrada {
     : nombre = normalizarTexto(item.nombre),
       texto = normalizarTexto('${item.nombre} ${item.sku} ${item.categoria}');
 
-  final InventarioItem item;
+  final ProductoInventario item;
   final String nombre;
   final String texto;
 }
@@ -50,7 +50,7 @@ class InventarioController extends ChangeNotifier {
 
   EstadoInventario _estado = EstadoInventario.cargando;
   List<_Entrada> _entradas = const [];
-  List<InventarioItem> _visibles = const [];
+  List<ProductoInventario> _visibles = const [];
   List<String> _categorias = const [];
   List<String> _palabras = const [];
   String _busqueda = '';
@@ -63,7 +63,7 @@ class InventarioController extends ChangeNotifier {
 
   EstadoInventario get estado => _estado;
   String? get error => _error;
-  List<InventarioItem> get visibles => _visibles;
+  List<ProductoInventario> get visibles => _visibles;
   List<String> get categorias => _categorias;
   int get total => _entradas.length;
   String get busqueda => _busqueda;

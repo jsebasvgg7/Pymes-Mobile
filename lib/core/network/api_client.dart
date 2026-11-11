@@ -34,6 +34,10 @@ class ApiClient {
     return _enviar(() => dio.post<dynamic>(ruta, data: datos));
   }
 
+  Future<dynamic> patch(String ruta, {Object? datos}) {
+    return _enviar(() => dio.patch<dynamic>(ruta, data: datos));
+  }
+
   Future<dynamic> _enviar(Future<Response<dynamic>> Function() peticion) async {
     try {
       final respuesta = await peticion();

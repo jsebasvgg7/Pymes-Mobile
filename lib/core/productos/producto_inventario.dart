@@ -1,9 +1,9 @@
-import '../../../../core/format/numero.dart';
+import '../format/numero.dart';
 
 enum EstadoStock { disponible, bajo, agotado }
 
-class InventarioItem {
-  const InventarioItem({
+class ProductoInventario {
+  const ProductoInventario({
     required this.productoId,
     required this.nombre,
     required this.sku,
@@ -14,6 +14,8 @@ class InventarioItem {
     required this.stockMinimo,
     required this.precioVenta,
     required this.stockBajo,
+    this.categoriaId,
+    this.descripcion = '',
   });
 
   static const String sinCategoria = 'Sin categoría';
@@ -29,6 +31,8 @@ class InventarioItem {
   final String nombre;
   final String sku;
   final String categoria;
+  final int? categoriaId;
+  final String descripcion;
   final String unidadMedida;
   final num cantidadActual;
   final num costoPromedio;
@@ -38,21 +42,26 @@ class InventarioItem {
 
   bool get permiteDecimales => _unidadesDecimales.contains(unidadMedida);
 
+  bool get agotado => cantidadActual <= 0;
+
   EstadoStock get estado {
-    if (cantidadActual <= 0) return EstadoStock.agotado;
+    if (agotado) return EstadoStock.agotado;
     if (cantidadActual <= stockMinimo) return EstadoStock.bajo;
     return EstadoStock.disponible;
   }
 
-  factory InventarioItem.fromJson(Map<String, dynamic> json) {
+  factory ProductoInventario.fromJson(Map<String, dynamic> json) {
     final categoria = _texto(json['categoriaNombre']);
-    return InventarioItem(
-      productoId: aNumero(json['productoId']).toInt(),
-      nombre: _texto(json['productoNombre']),
-      sku: _texto(json['productoSku']),
+    final id = json['categoriaId'];
+    return ProductoInventario(
+      productoId: aNumero(json['productoId'] ?? json['id']).toInt(),
+      nombre: _texto(json['productoNombre'] ?? json['nombre']),
+      sku: _texto(json['productoSku'] ?? json['sku']),
       categoria: categoria.isEmpty ? sinCategoria : categoria,
+      categoriaId: id is num ? id.toInt() : null,
+      descripcion: _texto(json['descripcion']),
       unidadMedida: _texto(json['unidadMedida']).toUpperCase(),
-      cantidadActual: aNumero(json['cantidadActual']),
+      cantidadActual: aNumero(json['cantidadActual'] ?? json['stockActual']),
       costoPromedio: aNumero(json['costoPromedio']),
       stockMinimo: aNumero(json['stockMinimo']),
       precioVenta: aNumero(json['precioVenta']),
@@ -60,11 +69,21 @@ class InventarioItem {
     );
   }
 
-  static List<InventarioItem> listaDesdeJson(dynamic json) {
+  static List<ProductoInventario> listaDesdeJson(dynamic json) {
     if (json is! List) return const [];
     return json
         .whereType<Map<String, dynamic>>()
-        .map(InventarioItem.fromJson)
+        .map(ProductoInventario.fromJson)
+        .toList();
+  }
+
+  static List<ProductoInventario> listaDesdePagina(dynamic json) {
+    if (json is! Map) return const [];
+    final contenido = json['content'];
+    if (contenido is! List) return const [];
+    return contenido
+        .whereType<Map<String, dynamic>>()
+        .map(ProductoInventario.fromJson)
         .toList();
   }
 }

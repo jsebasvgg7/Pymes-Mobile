@@ -23,4 +23,40 @@ void main() {
     expect(formatearMoneda(1234567890), r'$ 1.234.567.890');
     expect(formatearMoneda(8000.0), r'$ 8.000');
   });
+
+  group('formato configurado', () {
+    test('con dos decimales los muestra con coma', () {
+      expect(
+        formatearMonedaConfigurada(6800.5, simbolo: r'$', decimales: 2),
+        r'$ 6.800,50',
+      );
+      expect(
+        formatearMonedaConfigurada(1234, simbolo: r'$', decimales: 2),
+        r'$ 1.234,00',
+      );
+    });
+
+    test('usa el símbolo que le pasan', () {
+      expect(
+        formatearMonedaConfigurada(1500, simbolo: '€', decimales: 2),
+        '€ 1.500,00',
+      );
+    });
+
+    test('el signo va antes del símbolo', () {
+      expect(
+        formatearMonedaConfigurada(-1500, simbolo: r'$', decimales: 2),
+        r'-$ 1.500,00',
+      );
+    });
+
+    test('las monedas sin decimales quedan sin parte decimal', () {
+      expect(decimalesDeMoneda('COP'), 0);
+      expect(decimalesDeMoneda('CLP'), 0);
+      expect(decimalesDeMoneda('JPY'), 0);
+      expect(decimalesDeMoneda('PYG'), 0);
+      expect(decimalesDeMoneda('USD'), 2);
+      expect(decimalesDeMoneda('EUR'), 2);
+    });
+  });
 }

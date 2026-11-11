@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pymes_erp_mobile/app/theme.dart';
 import 'package:pymes_erp_mobile/features/inventario/data/inventario_repository.dart';
-import 'package:pymes_erp_mobile/features/inventario/data/models/inventario_item.dart';
+import 'package:pymes_erp_mobile/core/productos/producto_inventario.dart';
 import 'package:pymes_erp_mobile/features/inventario/presentation/inventario_controller.dart';
 import 'package:pymes_erp_mobile/features/inventario/presentation/widgets/barra_filtros.dart';
 import 'package:pymes_erp_mobile/features/inventario/presentation/widgets/hoja_filtros.dart';
@@ -14,13 +14,13 @@ import 'package:pymes_erp_mobile/features/inventario/presentation/widgets/tarjet
 class _RepoFalso implements InventarioRepository {
   _RepoFalso(this.items);
 
-  final List<InventarioItem> items;
+  final List<ProductoInventario> items;
 
   @override
-  Future<List<InventarioItem>> listar(int empresaId) async => items;
+  Future<List<ProductoInventario>> listar(int empresaId) async => items;
 }
 
-InventarioItem _item(
+ProductoInventario _item(
   int id,
   String nombre, {
   String categoria = 'Bebidas',
@@ -29,7 +29,7 @@ InventarioItem _item(
   num minimo = 5,
   String unidad = 'UNIDAD',
 }) {
-  return InventarioItem(
+  return ProductoInventario(
     productoId: id,
     nombre: nombre,
     sku: sku ?? 'SKU-$id',

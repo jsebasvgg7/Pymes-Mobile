@@ -1,23 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pymes_erp_mobile/core/network/api_exception.dart';
 import 'package:pymes_erp_mobile/features/inventario/data/inventario_repository.dart';
-import 'package:pymes_erp_mobile/features/inventario/data/models/inventario_item.dart';
+import 'package:pymes_erp_mobile/core/productos/producto_inventario.dart';
 import 'package:pymes_erp_mobile/features/inventario/presentation/inventario_controller.dart';
 
 class _RepoFalso implements InventarioRepository {
   _RepoFalso(this.accion);
 
-  Future<List<InventarioItem>> Function(int empresaId) accion;
+  Future<List<ProductoInventario>> Function(int empresaId) accion;
   int llamadas = 0;
 
   @override
-  Future<List<InventarioItem>> listar(int empresaId) {
+  Future<List<ProductoInventario>> listar(int empresaId) {
     llamadas++;
     return accion(empresaId);
   }
 }
 
-InventarioItem _item(
+ProductoInventario _item(
   int id,
   String nombre, {
   String sku = '',
@@ -26,7 +26,7 @@ InventarioItem _item(
   num minimo = 5,
   String unidad = 'UNIDAD',
 }) {
-  return InventarioItem(
+  return ProductoInventario(
     productoId: id,
     nombre: nombre,
     sku: sku,
@@ -40,7 +40,7 @@ InventarioItem _item(
   );
 }
 
-List<InventarioItem> _catalogo() => [
+List<ProductoInventario> _catalogo() => [
   _item(1, 'Gaseosa', sku: 'BEB-001', cantidad: 20),
   _item(2, 'Arroz', sku: 'ABA-001', categoria: 'Abarrotes', cantidad: 3),
   _item(3, 'Ñame', sku: 'ABA-002', categoria: 'Abarrotes', cantidad: 0),
@@ -53,7 +53,7 @@ List<String> _nombres(InventarioController c) =>
 
 void main() {
   Future<InventarioController> construir({
-    List<InventarioItem>? items,
+    List<ProductoInventario>? items,
     FiltroStock filtroInicial = FiltroStock.todos,
   }) async {
     final repo = _RepoFalso((_) async => items ?? _catalogo());

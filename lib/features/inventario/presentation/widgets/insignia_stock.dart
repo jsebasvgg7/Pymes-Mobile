@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
-import '../../data/models/inventario_item.dart';
+import '../../../../core/productos/producto_inventario.dart';
 
 String etiquetaEstadoStock(EstadoStock estado) {
   return switch (estado) {

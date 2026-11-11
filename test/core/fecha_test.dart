@@ -46,4 +46,31 @@ void main() {
   test('soloFecha descarta la hora', () {
     expect(soloFecha(DateTime(2026, 11, 9, 23, 59)), DateTime(2026, 11, 9));
   });
+
+  group('fecha larga', () {
+    test('la fecha va con día, mes y año de dos dígitos', () {
+      expect(
+        formatearFechaLarga(DateTime(2026, 11, 10)),
+        '10/11/2026',
+      );
+      expect(
+        formatearFechaLarga(DateTime(2026, 1, 5)),
+        '05/01/2026',
+      );
+    });
+
+    test('la hora va en formato de 12 horas con a. m. o p. m.', () {
+      expect(formatearHora12(DateTime(2026, 11, 10, 18, 57)), '6:57 p. m.');
+      expect(formatearHora12(DateTime(2026, 11, 10, 9, 5)), '9:05 a. m.');
+      expect(formatearHora12(DateTime(2026, 11, 10, 0, 0)), '12:00 a. m.');
+      expect(formatearHora12(DateTime(2026, 11, 10, 12, 0)), '12:00 p. m.');
+    });
+
+    test('fecha y hora juntas', () {
+      expect(
+        formatearFechaYHora12(DateTime(2026, 11, 10, 18, 57)),
+        '10/11/2026 6:57 p. m.',
+      );
+    });
+  });
 }
