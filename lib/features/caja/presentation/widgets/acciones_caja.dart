@@ -11,6 +11,7 @@ class AccionesCaja extends StatelessWidget {
     required this.alAbrir,
     required this.alCerrar,
     this.alReabrir,
+    this.alMovimiento,
   });
 
   final bool abierta;
@@ -19,6 +20,7 @@ class AccionesCaja extends StatelessWidget {
   final VoidCallback alAbrir;
   final VoidCallback alCerrar;
   final VoidCallback? alReabrir;
+  final VoidCallback? alMovimiento;
 
   Widget _botonFilled(
     BuildContext context,
@@ -65,7 +67,21 @@ class AccionesCaja extends StatelessWidget {
     if (abierta) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [_botonFilled(context, 'Cerrar caja', alCerrar)],
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _botonFilled(
+                  context,
+                  'Nuevo movimiento',
+                  alMovimiento ?? alCerrar,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: _botonOutlined(context, 'Cerrar caja', alCerrar)),
+            ],
+          ),
+        ],
       );
     }
     if (puedeReabrir) {

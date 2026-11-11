@@ -37,7 +37,6 @@ Future<bool> mostrarAbrirCaja(
   CajaVista caja,
 ) async {
   final ahora = DateTime.now();
-  final messenger = ScaffoldMessenger.of(contextoPagina);
 
   late final TextEditingController controladorMonto;
   num? monto;
@@ -54,48 +53,6 @@ Future<bool> mostrarAbrirCaja(
     );
   }
 
-  Future<void> confirmar() async {
-    final valor = montoDesdeTexto(controladorMonto.text);
-    if (valor == null || enviando) return;
-    enviando = true;
-
-    final ok = await controlador.abrirCaja(valor);
-
-    if (ok) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Caja abierta'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      if (contextoPagina.mounted) {
-        Navigator.of(contextoPagina).pop(true);
-      }
-      return;
-    }
-
-    enviando = false;
-    final esConflicto = controlador.codigoErrorAccion == 409;
-    final mensaje =
-        controlador.errorAccion ??
-        'No se pudo abrir la caja. Intenta de nuevo.';
-
-    if (esConflicto) {
-      if (contextoPagina.mounted) {
-        Navigator.of(contextoPagina).pop(false);
-        await controlador.refrescar();
-      }
-      messenger.showSnackBar(
-        SnackBar(content: Text(mensaje), duration: const Duration(seconds: 4)),
-      );
-      return;
-    }
-
-    messenger.showSnackBar(
-      SnackBar(content: Text(mensaje), duration: const Duration(seconds: 4)),
-    );
-  }
-
   final resultado = await showModalBottomSheet<bool>(
     context: contextoPagina,
     isScrollControlled: true,
@@ -107,6 +64,59 @@ Future<bool> mostrarAbrirCaja(
     builder: (contextoHoja) {
       return StatefulBuilder(
         builder: (contexto, estadoHoja) {
+          Future<void> confirmar() async {
+            final valor = montoDesdeTexto(controladorMonto.text);
+            if (valor == null || enviando) return;
+            enviando = true;
+            estadoHoja(() {});
+
+            final ok = await controlador.abrirCaja(valor);
+
+            if (!contextoHoja.mounted) return;
+            if (ok) {
+              Navigator.of(contextoHoja).pop(true);
+              if (contextoPagina.mounted) {
+                ScaffoldMessenger.of(contextoPagina).showSnackBar(
+                  const SnackBar(
+                    content: Text('Caja abierta'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+              return;
+            }
+
+            enviando = false;
+            final esConflicto = controlador.codigoErrorAccion == 409;
+            final mensaje =
+                controlador.errorAccion ??
+                'No se pudo abrir la caja. Intenta de nuevo.';
+
+            if (esConflicto) {
+              Navigator.of(contextoHoja).pop(false);
+              await controlador.refrescar();
+              if (contextoPagina.mounted) {
+                ScaffoldMessenger.of(contextoPagina).showSnackBar(
+                  SnackBar(
+                    content: Text(mensaje),
+                    duration: const Duration(seconds: 4),
+                  ),
+                );
+              }
+              return;
+            }
+
+            estadoHoja(() {});
+            if (contextoPagina.mounted) {
+              ScaffoldMessenger.of(contextoPagina).showSnackBar(
+                SnackBar(
+                  content: Text(mensaje),
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
+          }
+
           return Padding(
             padding:
                 MediaQuery.of(contexto).viewInsets +
@@ -126,9 +136,9 @@ Future<bool> mostrarAbrirCaja(
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text(
+                const Text(
                   'Abrir caja',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: tintaPrincipal,
@@ -184,7 +194,10 @@ Future<bool> mostrarAbrirCaja(
                         ),
                       ),
                       selected: seleccionado,
-                      onSelected: (_) => seleccionarOpcion(valor),
+                      onSelected: (_) {
+                        seleccionarOpcion(valor);
+                        estadoHoja(() {});
+                      },
                       selectedColor: tintaPrincipal.withValues(alpha: 0.1),
                       backgroundColor: superficie,
                       side: BorderSide(

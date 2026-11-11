@@ -9,10 +9,14 @@ import '../../auth/presentation/auth_controller.dart';
 import '../data/caja_repository.dart';
 import 'caja_controller.dart';
 import 'hojas_caja.dart';
+import 'movimiento_hoja.dart';
+import 'crear_caja_hoja.dart';
 import 'widgets/acciones_caja.dart';
 import 'widgets/aviso_caja.dart';
+import 'widgets/lista_movimientos.dart';
 import 'widgets/pildora_estado_caja.dart';
 import 'widgets/selector_cajas.dart';
+import 'widgets/tarjeta_caja.dart';
 import 'widgets/tarjeta_resumen_caja.dart';
 
 class CajaPage extends StatelessWidget {
@@ -107,7 +111,7 @@ class _Contenido extends StatelessWidget {
       children: [
         _Cabecera(caja: caja),
         if (caja == null)
-          const _SinCajas()
+          _SinCajas(alCrear: () => mostrarCrearCaja(context, controlador))
         else ...[
           const SizedBox(height: 16),
           SelectorCajas(
@@ -128,7 +132,24 @@ class _Contenido extends StatelessWidget {
             alAbrir: () => _abrirCaja(context, controlador, caja),
             alCerrar: () => _cerrarCaja(context, controlador, caja),
             alReabrir: () => _reabrirCaja(context, controlador),
+            alMovimiento: () => mostrarNuevoMovimiento(context, controlador),
           ),
+          if (controlador.abierta) ...[
+            const SizedBox(height: 20),
+            TarjetaCaja(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Movimientos',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 12),
+                  _MovimientosPanel(controlador: controlador),
+                ],
+              ),
+            ),
+          ],
           if (controlador.cierrePendiente) ...[
             const SizedBox(height: 12),
             const AvisoCaja(
@@ -205,6 +226,40 @@ class _Contenido extends StatelessWidget {
   }
 }
 
+class _MovimientosPanel extends StatelessWidget {
+  const _MovimientosPanel({required this.controlador});
+
+  final CajaController controlador;
+
+  @override
+  Widget build(BuildContext context) {
+    final estado = controlador.estadoMovimientos;
+    switch (estado) {
+      case EstadoPantallaMovimientos.cargando:
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        );
+      case EstadoPantallaMovimientos.error:
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Text(
+            'No pudimos cargar los movimientos.',
+            style: TextStyle(color: textoSecundario),
+          ),
+        );
+      case EstadoPantallaMovimientos.vacio:
+      case EstadoPantallaMovimientos.listo:
+        return ListaMovimientos(
+          movimientos: controlador.movimientos,
+          cargandoMas: controlador.cargandoMasMovimientos,
+          hayMas: controlador.hayMasMovimientos,
+          onCargarMas: () => controlador.cargarMasMovimientos(),
+        );
+    }
+  }
+}
+
 class _Cabecera extends StatelessWidget {
   const _Cabecera({required this.caja});
 
@@ -232,7 +287,9 @@ class _Cabecera extends StatelessWidget {
 }
 
 class _SinCajas extends StatelessWidget {
-  const _SinCajas();
+  const _SinCajas({this.alCrear});
+
+  final VoidCallback? alCrear;
 
   @override
   Widget build(BuildContext context) {
@@ -272,6 +329,24 @@ class _SinCajas extends StatelessWidget {
               ),
             ),
           ),
+          if (alCrear != null) ...[
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: alCrear,
+              style: FilledButton.styleFrom(
+                backgroundColor: tintaPrincipal,
+                foregroundColor: papel,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+              child: const Text('Crear caja'),
+            ),
+          ],
         ],
       ),
     );

@@ -5,9 +5,13 @@ import '../data/caja_repository.dart';
 import '../data/models/apertura_caja.dart';
 import '../data/models/cierre_caja_resultado.dart';
 import '../data/models/estado_caja.dart';
+import '../data/models/forma_pago_caja.dart';
+import '../data/models/movimiento_caja.dart';
 import '../data/models/resumen_caja.dart';
 
 enum EstadoPantallaCaja { cargando, listo, error }
+
+enum EstadoPantallaMovimientos { vacio, cargando, listo, error }
 
 class CajaVista {
   const CajaVista({required this.resumen, this.estado});
@@ -49,6 +53,16 @@ class CajaController extends ChangeNotifier {
   bool _hayDatos = false;
   bool _liberado = false;
   int _versionCierre = 0;
+  int _versionMovimientos = 0;
+
+  List<MovimientoCaja> _movimientos = const [];
+  List<FormaPagoCaja> _formasPago = const [];
+  EstadoPantallaMovimientos _estadoMovimientos =
+      EstadoPantallaMovimientos.vacio;
+  bool _cargandoMovimientos = false;
+  int _paginaMovimientos = 0;
+  int _totalPaginasMovimientos = 0;
+  bool _cargandoMasMovimientos = false;
 
   EstadoPantallaCaja get estado => _estado;
   List<CajaVista> get cajas => _cajas;
@@ -58,6 +72,14 @@ class CajaController extends ChangeNotifier {
   String? get errorAccion => _errorAccion;
   int? get codigoErrorAccion => _codigoErrorAccion;
   bool get procesandoAccion => _procesandoAccion;
+
+  List<MovimientoCaja> get movimientos => _movimientos;
+  List<FormaPagoCaja> get formasPago => _formasPago;
+  EstadoPantallaMovimientos get estadoMovimientos => _estadoMovimientos;
+  bool get cargandoMovimientos => _cargandoMovimientos;
+  bool get hayMasMovimientos =>
+      _paginaMovimientos + 1 < _totalPaginasMovimientos;
+  bool get cargandoMasMovimientos => _cargandoMasMovimientos;
 
   CajaVista? get seleccionada {
     final id = _seleccionadaId;
@@ -164,15 +186,58 @@ class CajaController extends ChangeNotifier {
     });
   }
 
+  Future<bool> crearCaja(String nombre, {num? saldoInicial}) async {
+    final nombreLimpio = nombre.trim();
+    if (nombreLimpio.isEmpty) {
+      _errorAccion = 'Ingresa el nombre de la caja.';
+      _codigoErrorAccion = null;
+      _notificar();
+      return false;
+    }
+    _errorAccion = null;
+    _codigoErrorAccion = null;
+    _procesandoAccion = true;
+    _notificar();
+    try {
+      await _repositorio.crearCaja(
+        empresaId: empresaId,
+        nombre: nombreLimpio,
+        saldoInicial: saldoInicial,
+      );
+      await _consultar();
+      return true;
+    } on ApiException catch (e) {
+      _errorAccion = e.mensaje;
+      _codigoErrorAccion = e.status;
+      _notificar();
+      return false;
+    } catch (_) {
+      _errorAccion = 'Ocurrió un error inesperado. Intenta de nuevo.';
+      _codigoErrorAccion = null;
+      _notificar();
+      return false;
+    } finally {
+      _procesandoAccion = false;
+    }
+  }
+
   Future<void> seleccionarCaja(int cajaId) async {
     if (cajaId == _seleccionadaId) return;
     _seleccionadaId = cajaId;
     _ultimoCierre = null;
     _versionCierre++;
+    _movimientos = const [];
+    _paginaMovimientos = 0;
+    _totalPaginasMovimientos = 0;
+    _estadoMovimientos = EstadoPantallaMovimientos.vacio;
     _notificar();
     final caja = seleccionada;
-    if (caja == null || caja.abierta) return;
-    await _cargarUltimoCierre(caja.cajaId);
+    if (caja == null) return;
+    if (!caja.abierta) {
+      await _cargarUltimoCierre(caja.cajaId);
+    }
+    await cargarMovimientos(caja.cajaId);
+    await cargarFormasPago();
   }
 
   Future<bool> _consultar() async {
@@ -205,6 +270,10 @@ class CajaController extends ChangeNotifier {
       if (caja != null && !caja.abierta) {
         await _cargarUltimoCierre(caja.cajaId);
       }
+      if (caja != null) {
+        await cargarMovimientos(caja.cajaId);
+        await cargarFormasPago();
+      }
       return true;
     } on ApiException catch (e) {
       return _fallar(e.mensaje);
@@ -228,6 +297,136 @@ class CajaController extends ChangeNotifier {
       }
       _ultimoCierre = null;
       _notificar();
+    }
+  }
+
+  Future<void> cargarMovimientos(int cajaId) async {
+    final version = ++_versionMovimientos;
+    _cargandoMovimientos = true;
+    _estadoMovimientos = EstadoPantallaMovimientos.cargando;
+    _paginaMovimientos = 0;
+    _notificar();
+    try {
+      final pagina = await _repositorio.movimientos(cajaId);
+      if (_liberado ||
+          version != _versionMovimientos ||
+          cajaId != _seleccionadaId) {
+        return;
+      }
+      _movimientos = List.unmodifiable(pagina.items);
+      _paginaMovimientos = pagina.pagina;
+      _totalPaginasMovimientos = pagina.totalPaginas;
+      _estadoMovimientos = _movimientos.isEmpty
+          ? EstadoPantallaMovimientos.vacio
+          : EstadoPantallaMovimientos.listo;
+    } catch (_) {
+      if (_liberado ||
+          version != _versionMovimientos ||
+          cajaId != _seleccionadaId) {
+        return;
+      }
+      _estadoMovimientos = EstadoPantallaMovimientos.error;
+    } finally {
+      if (_liberado ||
+          version != _versionMovimientos ||
+          cajaId != _seleccionadaId) {
+        return;
+      }
+      _cargandoMovimientos = false;
+      _notificar();
+    }
+  }
+
+  Future<void> cargarMasMovimientos() async {
+    final caja = seleccionada;
+    if (caja == null) return;
+    if (_cargandoMasMovimientos || !hayMasMovimientos) return;
+    final version = _versionMovimientos;
+    final pagina = _paginaMovimientos + 1;
+    _cargandoMasMovimientos = true;
+    _notificar();
+    try {
+      final resultado = await _repositorio.movimientos(
+        caja.cajaId,
+        pagina: pagina,
+      );
+      if (_liberado ||
+          version != _versionMovimientos ||
+          caja.cajaId != _seleccionadaId) {
+        return;
+      }
+      _movimientos = List.unmodifiable([..._movimientos, ...resultado.items]);
+      _paginaMovimientos = resultado.pagina;
+      _totalPaginasMovimientos = resultado.totalPaginas;
+      if (_movimientos.isNotEmpty) {
+        _estadoMovimientos = EstadoPantallaMovimientos.listo;
+      }
+    } finally {
+      if (_liberado ||
+          version != _versionMovimientos ||
+          caja.cajaId != _seleccionadaId) {
+        return;
+      }
+      _cargandoMasMovimientos = false;
+      _notificar();
+    }
+  }
+
+  Future<void> cargarFormasPago() async {
+    if (_formasPago.isNotEmpty) return;
+    try {
+      final formas = await _repositorio.formasDePago(empresaId);
+      if (_liberado) return;
+      _formasPago = List.unmodifiable(
+        formas.where((f) => f.activo && !f.esCredito).toList(),
+      );
+      _notificar();
+    } catch (_) {
+      // Ignorar errores al cargar formas de pago
+    }
+  }
+
+  Future<bool> registrarMovimiento({
+    required TipoMovimientoCaja tipo,
+    required int formaPagoId,
+    required num monto,
+    required String descripcion,
+    TipoReferenciaMovimientoCaja tipoReferencia =
+        TipoReferenciaMovimientoCaja.ajuste,
+  }) async {
+    final caja = seleccionada;
+    if (caja == null || !caja.abierta) return false;
+    _errorAccion = null;
+    _codigoErrorAccion = null;
+    _procesandoAccion = true;
+    _notificar();
+    try {
+      await _repositorio.registrarMovimiento(
+        empresaId: empresaId,
+        cajaId: caja.cajaId,
+        formaPagoId: formaPagoId,
+        tipo: tipo,
+        monto: monto,
+        descripcion: descripcion,
+        tipoReferencia: tipoReferencia,
+      );
+      await _consultar();
+      final cajaId = seleccionadaId ?? caja.cajaId;
+      await cargarMovimientos(cajaId);
+      return true;
+    } on ApiException catch (e) {
+      _errorAccion = e.mensaje;
+      _codigoErrorAccion = e.status;
+      if (e.status == 409) await _consultar();
+      _notificar();
+      return false;
+    } catch (_) {
+      _errorAccion = 'Ocurrió un error inesperado. Intenta de nuevo.';
+      _codigoErrorAccion = null;
+      _notificar();
+      return false;
+    } finally {
+      _procesandoAccion = false;
     }
   }
 
