@@ -13,6 +13,8 @@ import 'package:pymes_erp_mobile/features/caja/data/caja_repository.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/apertura_caja.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/cierre_caja_resultado.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/estado_caja.dart';
+import 'package:pymes_erp_mobile/features/caja/data/models/forma_pago_caja.dart';
+import 'package:pymes_erp_mobile/features/caja/data/models/movimiento_caja.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/resumen_caja.dart';
 import 'package:pymes_erp_mobile/features/caja/presentation/caja_page.dart';
 
@@ -46,9 +48,9 @@ class _RepoFalso extends CajaRepository {
        estadosAccion = estadosAccion ?? ((_) async => const []),
        cierresAccion =
            cierresAccion ?? ((_) async => const PaginaCierresCaja(items: [])),
-       abrirAccion = abrirAccion ?? ((_, __) async => _aperturaAbierto()),
+       abrirAccion = abrirAccion ?? ((_, _) async => _aperturaAbierto()),
        cerrarAccion =
-           cerrarAccion ?? ((_, __) async => _resultadoCierreCerrado()),
+           cerrarAccion ?? ((_, _) async => _resultadoCierreCerrado()),
        reabrirAccion = reabrirAccion ?? ((_) async => _aperturaAbierto()),
        super(cliente: ApiClient(almacen: SessionStorage()));
 
@@ -79,6 +81,20 @@ class _RepoFalso extends CajaRepository {
     int tamano = 1,
   }) {
     return cierresAccion(cajaId);
+  }
+
+  @override
+  Future<PaginaMovimientosCaja> movimientos(
+    int cajaId, {
+    int pagina = 0,
+    int tamano = 20,
+  }) async {
+    return const PaginaMovimientosCaja(items: []);
+  }
+
+  @override
+  Future<List<FormaPagoCaja>> formasDePago(int empresaId) async {
+    return const [];
   }
 
   @override
@@ -212,6 +228,59 @@ Future<void> _cargar(
   await tester.pump(const Duration(milliseconds: 100));
 }
 
+Widget _envolverAnidado(_RepoFalso repo) {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider<AuthController>.value(value: _AuthFalso()),
+      Provider<CajaRepository>.value(value: repo),
+    ],
+    child: MaterialApp(
+      theme: construirTema(),
+      home: Scaffold(
+        body: Navigator(
+          onGenerateRoute: (_) =>
+              MaterialPageRoute<void>(builder: (_) => const CajaPage()),
+        ),
+      ),
+    ),
+  );
+}
+
+void _agregarPruebaCierreAnidado() {
+  testWidgets(
+    'cerrar la caja cierra la hoja y conserva la pagina dentro de un navegador anidado',
+    (tester) async {
+      final repo = _RepoFalso(
+        resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+        estadosAccion: (_) async => [_estado(1, 'Caja Principal')],
+      );
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_envolverAnidado(repo));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await tester.tap(find.text('Cerrar caja'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Confirmar cierre'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), '100000');
+      await tester.pump();
+      await tester.tap(find.text('Confirmar cierre'));
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+
+      expect(repo.llamadasCerrar, 1);
+      expect(find.text('Confirmar cierre'), findsNothing);
+      expect(find.byType(CajaPage), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+}
+
 void main() {
   testWidgets('muestra la caja abierta con su resumen', (tester) async {
     final repo = _RepoFalso(
@@ -316,4 +385,6 @@ void main() {
     expect(find.text('Caja Principal'), findsOneWidget);
     expect(find.text('Caja abierta'), findsOneWidget);
   });
+
+  _agregarPruebaCierreAnidado();
 }

@@ -326,15 +326,14 @@ class CajaController extends ChangeNotifier {
         return;
       }
       _estadoMovimientos = EstadoPantallaMovimientos.error;
-    } finally {
-      if (_liberado ||
-          version != _versionMovimientos ||
-          cajaId != _seleccionadaId) {
-        return;
-      }
-      _cargandoMovimientos = false;
-      _notificar();
     }
+    if (_liberado ||
+        version != _versionMovimientos ||
+        cajaId != _seleccionadaId) {
+      return;
+    }
+    _cargandoMovimientos = false;
+    _notificar();
   }
 
   Future<void> cargarMasMovimientos() async {
@@ -361,7 +360,7 @@ class CajaController extends ChangeNotifier {
       if (_movimientos.isNotEmpty) {
         _estadoMovimientos = EstadoPantallaMovimientos.listo;
       }
-    } finally {
+    } catch (_) {
       if (_liberado ||
           version != _versionMovimientos ||
           caja.cajaId != _seleccionadaId) {
@@ -369,7 +368,10 @@ class CajaController extends ChangeNotifier {
       }
       _cargandoMasMovimientos = false;
       _notificar();
+      rethrow;
     }
+    _cargandoMasMovimientos = false;
+    _notificar();
   }
 
   Future<void> cargarFormasPago() async {

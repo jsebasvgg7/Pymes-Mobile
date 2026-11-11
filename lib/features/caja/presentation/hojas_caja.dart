@@ -285,8 +285,15 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
   late final TextEditingController controladorMonto;
   num? monto;
   bool enviando = false;
+  BuildContext? contextoHojaActual;
 
   controladorMonto = TextEditingController();
+
+  void cerrarHoja(CierreCajaResultado? valor) {
+    final contexto = contextoHojaActual;
+    if (contexto == null || !contexto.mounted) return;
+    Navigator.of(contexto).pop(valor);
+  }
 
   Future<void> confirmar() async {
     final valor = montoDesdeTexto(controladorMonto.text);
@@ -296,9 +303,7 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
     final resultado = await controlador.cerrarCaja(valor);
 
     if (resultado != null) {
-      if (contextoPagina.mounted) {
-        Navigator.of(contextoPagina).pop(resultado);
-      }
+      cerrarHoja(resultado);
       return;
     }
 
@@ -309,8 +314,8 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
         'No se pudo cerrar la caja. Intenta de nuevo.';
 
     if (esConflicto) {
+      cerrarHoja(null);
       if (contextoPagina.mounted) {
-        Navigator.of(contextoPagina).pop(null);
         await controlador.refrescar();
       }
       messenger.showSnackBar(
@@ -333,6 +338,7 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (contextoHoja) {
+      contextoHojaActual = contextoHoja;
       return StatefulBuilder(
         builder: (contexto, estadoHoja) {
           return Padding(

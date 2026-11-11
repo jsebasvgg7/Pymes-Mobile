@@ -23,9 +23,9 @@ class _RepoFalso extends CajaRepository {
        estadosAccion = estadosAccion ?? ((_) async => const []),
        cierresAccion =
            cierresAccion ?? ((_) async => const PaginaCierresCaja(items: [])),
-       abrirAccion = abrirAccion ?? ((_, __) async => _aperturaAbierto()),
+       abrirAccion = abrirAccion ?? ((_, _) async => _aperturaAbierto()),
        cerrarAccion =
-           cerrarAccion ?? ((_, __) async => _resultadoCierreCerrado()),
+           cerrarAccion ?? ((_, _) async => _resultadoCierreCerrado()),
        reabrirAccion = reabrirAccion ?? ((_) async => _aperturaAbierto()),
        super(cliente: ApiClient(almacen: SessionStorage()));
 
@@ -453,7 +453,7 @@ void main() {
         return [_resumen(1, 'Caja Principal')];
       },
       estadosAccion: (_) async => [estado1],
-      abrirAccion: (_, __) async =>
+      abrirAccion: (_, _) async =>
           throw const ApiException('Ya está abierta', status: 409),
     );
     final c = await _construir(repo);
@@ -515,7 +515,7 @@ void main() {
         return [_resumen(1, 'Caja Principal')];
       },
       estadosAccion: (_) async => [estado1],
-      cerrarAccion: (_, __) async =>
+      cerrarAccion: (_, _) async =>
           throw const ApiException('Ya está cerrada', status: 409),
     );
     final c = await _construir(repo);
