@@ -41,8 +41,13 @@ class FilaProductoPos extends StatelessWidget {
         onTap: agotado ? null : alSeleccionar,
         child: Opacity(
           opacity: agotado ? 0.5 : 1,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 64),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: papel,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: linea, width: 1),
+            ),
             child: Row(
               children: [
                 _CirculoSeleccion(activo: seleccionado, habilitado: !agotado),

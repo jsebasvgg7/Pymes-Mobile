@@ -5,7 +5,7 @@ import 'package:pymes_erp_mobile/core/productos/producto_inventario.dart';
 import 'package:pymes_erp_mobile/features/pos/presentation/widgets/fila_producto_pos.dart';
 
 void main() {
-  testWidgets('la fila de producto mide al menos 64 dp', (tester) async {
+  testWidgets('la fila de producto es una tarjeta blanca con borde fino', (tester) async {
     const producto = ProductoInventario(
       productoId: 1,
       nombre: 'Lentejas',
@@ -33,9 +33,16 @@ void main() {
       ),
     );
 
-    expect(
-      tester.getSize(find.byType(FilaProductoPos)).height,
-      greaterThanOrEqualTo(64),
+    final tarjeta = tester.widget<Container>(
+      find.descendant(
+        of: find.byType(FilaProductoPos),
+        matching: find.byType(Container),
+      ),
     );
+    final decoracion = tarjeta.decoration! as BoxDecoration;
+
+    expect(decoracion.color, papel);
+    expect(decoracion.borderRadius, BorderRadius.circular(16));
+    expect(decoracion.border, Border.all(color: linea, width: 1));
   });
 }

@@ -187,7 +187,7 @@ class _Contenido extends StatelessWidget {
                     24 + MediaQuery.paddingOf(context).bottom,
                   ),
                   itemCount: productos.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 20),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, indice) {
                     final producto = productos[indice];
                     return FilaProductoPos(
