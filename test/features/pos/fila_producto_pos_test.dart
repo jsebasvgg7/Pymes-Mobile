@@ -5,7 +5,9 @@ import 'package:pymes_erp_mobile/core/productos/producto_inventario.dart';
 import 'package:pymes_erp_mobile/features/pos/presentation/widgets/fila_producto_pos.dart';
 
 void main() {
-  testWidgets('la fila de producto es una tarjeta blanca con borde fino', (tester) async {
+  testWidgets('la fila de producto es una tarjeta blanca con borde fino', (
+    tester,
+  ) async {
     const producto = ProductoInventario(
       productoId: 1,
       nombre: 'Lentejas',

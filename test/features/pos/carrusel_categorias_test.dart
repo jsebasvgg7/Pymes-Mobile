@@ -94,4 +94,76 @@ void main() {
       expect(color, tintaPrincipal.withValues(alpha: 0.07));
     }
   });
+
+  group('desvanecido en los bordes', () {
+    final muchas = List.generate(
+      6,
+      (i) => CategoriaPos(id: i + 1, nombre: 'Categoría $i', icono: 'milk'),
+    );
+
+    Future<void> montar(WidgetTester tester, List<CategoriaPos> lista) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(320, 600);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: construirTema(),
+          home: Scaffold(
+            body: CarruselCategorias(
+              categorias: lista,
+              categoriaElegida: null,
+              alElegir: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('al inicio solo se desvanece el lado derecho', (tester) async {
+      await montar(tester, muchas);
+
+      expect(
+        find.byKey(const ValueKey('desvanecido-false-true')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('al desplazar también se desvanece el izquierdo', (
+      tester,
+    ) async {
+      await montar(tester, muchas);
+
+      await tester.drag(find.byType(ListView), const Offset(-100, 0));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('desvanecido-true-true')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('al llegar al final el derecho deja de desvanecerse', (
+      tester,
+    ) async {
+      await montar(tester, muchas);
+
+      await tester.drag(find.byType(ListView), const Offset(-3000, 0));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('desvanecido-true-false')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('sin desbordar no hay desvanecido', (tester) async {
+      await montar(tester, _categorias.take(1).toList());
+
+      expect(
+        find.byKey(const ValueKey('desvanecido-false-false')),
+        findsOneWidget,
+      );
+    });
+  });
 }
