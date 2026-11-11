@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -14,11 +15,14 @@ class _Almacen extends SessionStorage {
 }
 
 class _Adaptador implements HttpClientAdapter {
-  _Adaptador(this.cuerpo, {this.status = 200});
+  _Adaptador(this.cuerpo, {this.status = 200, this.porPagina});
 
   final String cuerpo;
   final int status;
   final List<RequestOptions> peticiones = [];
+
+  /// Cuerpo distinto por página, para probar la paginación.
+  final List<String>? porPagina;
 
   @override
   Future<ResponseBody> fetch(
@@ -27,8 +31,13 @@ class _Adaptador implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     peticiones.add(options);
+    final pagina = options.queryParameters['page'] as int? ?? 0;
+    final porPagina = this.porPagina;
+    final respuesta = porPagina == null
+        ? cuerpo
+        : porPagina[min(pagina, porPagina.length - 1)];
     return ResponseBody.fromString(
-      cuerpo,
+      respuesta,
       status,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
@@ -261,8 +270,50 @@ void main() {
     expect(venta.estado, 'ANULADA');
   });
 
-  test('un error del servidor se lanza como ApiException', () async {
-    final repositorio = _construir('{"message":"Stock insuficiente"}', status: 400);
+  test('los productos traen todas las páginas del catálogo', () async {
+    final adaptador = _Adaptador(
+      '',
+      porPagina: const [
+        '{"content":[{"id":1,"nombre":"Lentejas","categoriaId":3}],'
+            '"totalPages":3}',
+        '{"content":[{"id":2,"nombre":"Arroz","categoriaId":3}],'
+            '"totalPages":3}',
+        '{"content":[{"id":3,"nombre":"Aceite","categoriaId":4}],'
+            '"totalPages":3}',
+      ],
+    );
+    final cliente = ApiClient(almacen: _Almacen());
+    cliente.dio.httpClientAdapter = adaptador;
+    final repositorio = PosRepository(cliente: cliente);
+
+    final productos = await repositorio.productos(7);
+
+    expect(adaptador.peticiones.length, 3);
+    expect(
+      adaptador.peticiones.map((p) => p.queryParameters['page']).toList(),
+      [0, 1, 2],
+    );
+    expect(productos.map((p) => p.nombre).toList(), [
+      'Lentejas',
+      'Arroz',
+      'Aceite',
+    ]);
+  });
+
+  test('un catálogo de una sola página hace una sola petición', () async {
+    final adaptador = _Adaptador(
+      '{"content":[{"id":1,"nombre":"Lentejas"}],"totalPages":1}',
+    );
+    final cliente = ApiClient(almacen: _Almacen());
+    cliente.dio.httpClientAdapter = adaptador;
+    final repositorio = PosRepository(cliente: cliente);
+
+    await repositorio.categorias(7);
+
+    expect(adaptador.peticiones.length, 1);
+  });
+
+  test('un error del servidor se lanza como ApiException', () async {    final repositorio = _construir('{"message":"Stock insuficiente"}', status: 400);
 
     await expectLater(
       repositorio.crearVenta(

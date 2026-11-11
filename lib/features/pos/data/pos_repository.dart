@@ -32,39 +32,70 @@ class PosRepository {
   PosRepository({required this._cliente});
 
   static const int _pagina = 200;
+  static const int _maxPaginas = 20;
 
   final ApiClient _cliente;
 
   Future<List<ProductoInventario>> productos(int empresaId) async {
-    final respuesta = await _cliente.get(
-      '/api/productos/listar-por-empresa/$empresaId',
-      query: {'page': 0, 'size': _pagina},
+    final paginas = await _paginas(
+      (page) => '/api/productos/listar-por-empresa/$empresaId',
     );
-    return ProductoInventario.listaDesdePagina(respuesta);
+    return paginas
+        .expand((json) => ProductoInventario.listaDesdePagina(json))
+        .toList();
   }
 
   Future<List<CategoriaPos>> categorias(int empresaId) async {
-    final respuesta = await _cliente.get(
-      '/api/categorias-producto/listar-por-empresa/$empresaId',
-      query: {'page': 0, 'size': _pagina},
+    final paginas = await _paginas(
+      (page) => '/api/categorias-producto/listar-por-empresa/$empresaId',
     );
-    return CategoriaPos.listaDesdePagina(respuesta);
+    return paginas
+        .expand((json) => CategoriaPos.listaDesdePagina(json))
+        .toList();
   }
 
   Future<List<FormaPago>> formasDePago(int empresaId) async {
-    final respuesta = await _cliente.get(
-      '/api/formas-pago/listar-por-empresa/$empresaId',
-      query: {'page': 0, 'size': _pagina},
+    final paginas = await _paginas(
+      (page) => '/api/formas-pago/listar-por-empresa/$empresaId',
     );
-    return FormaPago.listaDesdePagina(respuesta);
+    return paginas
+        .expand((json) => FormaPago.listaDesdePagina(json))
+        .toList();
   }
 
   Future<List<ClientePos>> clientes(int empresaId) async {
-    final respuesta = await _cliente.get(
-      '/api/clientes/listar-por-empresa/$empresaId',
-      query: {'page': 0, 'size': _pagina},
+    final paginas = await _paginas(
+      (page) => '/api/clientes/listar-por-empresa/$empresaId',
     );
-    return ClientePos.listaDesdePagina(respuesta);
+    return paginas
+        .expand((json) => ClientePos.listaDesdePagina(json))
+        .toList();
+  }
+
+  Future<List<dynamic>> _paginas(String Function(int page) ruta) async {
+    const primera = 0;
+    final respuesta = await _cliente.get(
+      ruta(primera),
+      query: {'page': primera, 'size': _pagina},
+    );
+    final total = _totalPaginas(respuesta);
+    if (total <= 1) return [respuesta];
+    final resto = <dynamic>[];
+    for (var siguiente = primera + 1; siguiente < total && siguiente < _maxPaginas; siguiente++) {
+      resto.add(
+        await _cliente.get(
+          ruta(siguiente),
+          query: {'page': siguiente, 'size': _pagina},
+        ),
+      );
+    }
+    return [respuesta, ...resto];
+  }
+
+  int _totalPaginas(dynamic json) {
+    if (json is! Map) return 1;
+    final total = json['totalPages'];
+    return total is num ? total.toInt() : 1;
   }
 
   Future<AjustesVenta> ajustes(int empresaId) async {
