@@ -120,13 +120,20 @@ void main() {
       await tester.pump();
     }
 
+    /// Los bordes que se desvanecen, leidos del estado del widget.
+    String bordes(WidgetTester tester) {
+      final estado = tester.state<CarruselCategoriasState>(
+        find.byType(CarruselCategorias),
+      );
+      final izq = estado.desvanecerIzquierda ? 'izq' : 'opaco';
+      final der = estado.desvanecerDerecha ? 'der' : 'opaco';
+      return '$izq/$der';
+    }
+
     testWidgets('al inicio solo se desvanece el lado derecho', (tester) async {
       await montar(tester, muchas);
 
-      expect(
-        find.byKey(const ValueKey('desvanecido-false-true')),
-        findsOneWidget,
-      );
+      expect(bordes(tester), 'opaco/der');
     });
 
     testWidgets('al desplazar también se desvanece el izquierdo', (
@@ -137,10 +144,7 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(-100, 0));
       await tester.pumpAndSettle();
 
-      expect(
-        find.byKey(const ValueKey('desvanecido-true-true')),
-        findsOneWidget,
-      );
+      expect(bordes(tester), 'izq/der');
     });
 
     testWidgets('al llegar al final el derecho deja de desvanecerse', (
@@ -151,19 +155,25 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(-3000, 0));
       await tester.pumpAndSettle();
 
-      expect(
-        find.byKey(const ValueKey('desvanecido-true-false')),
-        findsOneWidget,
-      );
+      expect(bordes(tester), 'izq/opaco');
     });
 
     testWidgets('sin desbordar no hay desvanecido', (tester) async {
       await montar(tester, _categorias.take(1).toList());
 
-      expect(
-        find.byKey(const ValueKey('desvanecido-false-false')),
-        findsOneWidget,
-      );
+      expect(bordes(tester), 'opaco/opaco');
+    });
+
+    testWidgets('el carrusel conserva la posición al desplazarse', (
+      tester,
+    ) async {
+      await montar(tester, muchas);
+
+      await tester.drag(find.byType(ListView), const Offset(-100, 0));
+      await tester.pumpAndSettle();
+
+      final lista = tester.widget<ListView>(find.byType(ListView));
+      expect(lista.controller?.offset, greaterThan(0));
     });
   });
 }

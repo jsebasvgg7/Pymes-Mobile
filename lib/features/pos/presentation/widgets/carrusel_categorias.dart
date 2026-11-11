@@ -18,15 +18,15 @@ class CarruselCategorias extends StatefulWidget {
   final ValueChanged<int?> alElegir;
 
   @override
-  State<CarruselCategorias> createState() => _CarruselCategoriasState();
+  State<CarruselCategorias> createState() => CarruselCategoriasState();
 }
 
-class _CarruselCategoriasState extends State<CarruselCategorias> {
+class CarruselCategoriasState extends State<CarruselCategorias> {
   static const double _largoDesvanecido = 28;
 
   final ScrollController _controlador = ScrollController();
-  bool _desvanecerIzquierda = false;
-  bool _desvanecerDerecha = false;
+  bool desvanecerIzquierda = false;
+  bool desvanecerDerecha = false;
 
   @override
   void initState() {
@@ -36,8 +36,8 @@ class _CarruselCategoriasState extends State<CarruselCategorias> {
   }
 
   @override
-  void didUpdateWidget(CarruselCategorias anterior) {
-    super.didUpdateWidget(anterior);
+  void didUpdateWidget(CarruselCategorias oldWidget) {
+    super.didUpdateWidget(oldWidget);
     _programarRevision();
   }
 
@@ -59,12 +59,12 @@ class _CarruselCategoriasState extends State<CarruselCategorias> {
     final posicion = _controlador.position;
     final izquierda = posicion.pixels > 0.5;
     final derecha = posicion.pixels < posicion.maxScrollExtent - 0.5;
-    if (izquierda == _desvanecerIzquierda && derecha == _desvanecerDerecha) {
+    if (izquierda == desvanecerIzquierda && derecha == desvanecerDerecha) {
       return;
     }
     setState(() {
-      _desvanecerIzquierda = izquierda;
-      _desvanecerDerecha = derecha;
+      desvanecerIzquierda = izquierda;
+      desvanecerDerecha = derecha;
     });
   }
 
@@ -72,10 +72,10 @@ class _CarruselCategoriasState extends State<CarruselCategorias> {
     final fraccion = (_largoDesvanecido / area.width).clamp(0.0, 0.5);
     return LinearGradient(
       colors: [
-        _desvanecerIzquierda ? Colors.transparent : Colors.black,
+        desvanecerIzquierda ? Colors.transparent : Colors.black,
         Colors.black,
         Colors.black,
-        _desvanecerDerecha ? Colors.transparent : Colors.black,
+        desvanecerDerecha ? Colors.transparent : Colors.black,
       ],
       stops: [0, fraccion, 1 - fraccion, 1],
     ).createShader(area);
@@ -89,9 +89,6 @@ class _CarruselCategoriasState extends State<CarruselCategorias> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: ShaderMask(
-          key: ValueKey(
-            'desvanecido-$_desvanecerIzquierda-$_desvanecerDerecha',
-          ),
           blendMode: BlendMode.dstIn,
           shaderCallback: _construirDesvanecido,
           child: ListView.separated(

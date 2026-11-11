@@ -50,7 +50,7 @@ class FilaProductoPos extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _CirculoSeleccion(activo: seleccionado, habilitado: !agotado),
+                _CirculoSeleccion(activo: seleccionado),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -121,10 +121,9 @@ String _cantidad(ProductoInventario producto) {
 }
 
 class _CirculoSeleccion extends StatelessWidget {
-  const _CirculoSeleccion({required this.activo, required this.habilitado});
+  const _CirculoSeleccion({required this.activo});
 
   final bool activo;
-  final bool habilitado;
 
   @override
   Widget build(BuildContext context) {
