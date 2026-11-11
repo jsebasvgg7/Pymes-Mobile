@@ -17,11 +17,13 @@ class DetalleVenta {
   final num totalLinea;
 
   factory DetalleVenta.fromJson(Map<String, dynamic> json) {
+    final descripcion = (json['descripcion'] as String?)?.trim() ?? '';
+    final productoNombre = (json['productoNombre'] as String?)?.trim() ?? '';
     return DetalleVenta(
       productoId: json['productoId'] == null
           ? null
           : aNumero(json['productoId']).toInt(),
-      descripcion: (json['descripcion'] as String?)?.trim() ?? '',
+      descripcion: descripcion.isNotEmpty ? descripcion : productoNombre,
       cantidad: aNumero(json['cantidad']),
       precioUnitario: aNumero(json['precioUnitario']),
       totalLinea: aNumero(json['totalLinea']),

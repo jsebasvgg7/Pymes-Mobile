@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/format/moneda.dart';
 import '../../../core/widgets/estado_carga.dart';
 import '../../../core/widgets/estado_error.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -139,7 +140,11 @@ class _Contenido extends StatelessWidget {
               const SizedBox(width: 10),
               _BotonCarrito(
                 cantidad: carrito.cantidadProductos,
-                alTocar: () => abrirCarrito(context, carrito),
+                alTocar: () => abrirCarrito(
+                  context,
+                  carrito,
+                  alNuevaVenta: () => controlador.cargar(),
+                ),
               ),
             ],
           ),
@@ -208,6 +213,8 @@ class _Contenido extends StatelessWidget {
                           carrito.agregar(producto);
                         }
                       },
+                      simbolo: controlador.ajustes.simboloMoneda,
+                      decimales: decimalesDeMoneda(controlador.ajustes.moneda),
                     );
                   },
                 ),

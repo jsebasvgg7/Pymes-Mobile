@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/format/cantidad.dart';
@@ -7,26 +8,43 @@ import '../../../core/format/fecha.dart';
 import '../../../core/format/moneda.dart';
 import '../data/models/venta_creada.dart';
 import 'carrito_controller.dart';
+import 'factura_texto.dart';
 
-/// Muestra la factura de la venta registrada. El boton de compartir queda
-/// fuera de esta entrega (depende de `share_plus`, que se agrega en la 5.1f).
 Future<void> mostrarFactura(
   BuildContext context,
   VentaCreada venta,
-  CarritoController carrito,
-) {
+  CarritoController carrito, {
+  VoidCallback? alNuevaVenta,
+  Future<void> Function(String texto)? alCompartir,
+}) {
   return showDialog<void>(
     context: context,
     barrierColor: Colors.black54,
-    builder: (dialogo) => _FacturaDialog(venta: venta, carrito: carrito),
+    barrierDismissible: false,
+    builder: (dialogo) => PopScope(
+      canPop: false,
+      child: _FacturaDialog(
+        venta: venta,
+        carrito: carrito,
+        alNuevaVenta: alNuevaVenta,
+        alCompartir: alCompartir,
+      ),
+    ),
   );
 }
 
 class _FacturaDialog extends StatelessWidget {
-  const _FacturaDialog({required this.venta, required this.carrito});
+  const _FacturaDialog({
+    required this.venta,
+    required this.carrito,
+    this.alNuevaVenta,
+    this.alCompartir,
+  });
 
   final VentaCreada venta;
   final CarritoController carrito;
+  final VoidCallback? alNuevaVenta;
+  final Future<void> Function(String texto)? alCompartir;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +99,7 @@ class _FacturaDialog extends StatelessWidget {
             const Divider(height: 1, color: linea),
             const SizedBox(height: 16),
             Text(
-              _nombreNegocio(),
+              carrito.nombreNegocio,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
             ),
@@ -93,6 +111,8 @@ class _FacturaDialog extends StatelessWidget {
               ),
             if (venta.formaPagoNombre.isNotEmpty)
               _Dato(etiqueta: 'Método de pago', valor: venta.formaPagoNombre),
+            if (venta.clienteNombre.isNotEmpty)
+              _Dato(etiqueta: 'Cliente', valor: venta.clienteNombre),
             const SizedBox(height: 12),
             const Divider(height: 1, color: linea),
             const SizedBox(height: 12),
@@ -106,6 +126,12 @@ class _FacturaDialog extends StatelessWidget {
             const Divider(height: 1, color: linea),
             const SizedBox(height: 12),
             _Dato(etiqueta: 'Subtotal', valor: moneda(venta.subtotal)),
+            if (venta.descuento > 0)
+              _Dato(
+                etiqueta: 'Descuento',
+                valor: '− ${moneda(venta.descuento)}',
+                colorValor: positivo,
+              ),
             if (carrito.recibido > 0)
               _Dato(etiqueta: 'Recibido', valor: moneda(carrito.recibido)),
             if (carrito.vuelto > 0)
@@ -133,12 +159,20 @@ class _FacturaDialog extends StatelessWidget {
                 ),
               ],
             ),
+            if (carrito.mensajePie.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Text(
+                carrito.mensajePie,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, color: textoSecundario),
+              ),
+            ],
             const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => _compartir(context),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size.fromHeight(48),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -149,7 +183,7 @@ class _FacturaDialog extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      'Cerrar',
+                      'Compartir',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -160,10 +194,7 @@ class _FacturaDialog extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: FilledButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      carrito.nuevaVenta();
-                    },
+                    onPressed: () => _nuevaVenta(context),
                     style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(48),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -188,10 +219,32 @@ class _FacturaDialog extends StatelessWidget {
     );
   }
 
-  String _nombreNegocio() {
-    final nombre = carrito.ajustes.nombreRecibo;
-    if (nombre.isNotEmpty) return nombre;
-    return 'Pymes ERP';
+  Future<void> _compartir(BuildContext context) async {
+    final texto = textoFactura(venta, carrito);
+    try {
+      final enviar = alCompartir ?? _compartirConShare;
+      await enviar(texto);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No pudimos abrir el menú para compartir.'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: tintaPrincipal,
+        ),
+      );
+    }
+  }
+
+  Future<void> _compartirConShare(String texto) async {
+    await SharePlus.instance.share(ShareParams(text: texto));
+  }
+
+  void _nuevaVenta(BuildContext context) {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    navigator.popUntil((route) => route.isFirst);
+    carrito.nuevaVenta();
+    alNuevaVenta?.call();
   }
 }
 

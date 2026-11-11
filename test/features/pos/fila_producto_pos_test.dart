@@ -30,6 +30,8 @@ void main() {
             producto: producto,
             seleccionado: false,
             alSeleccionar: () {},
+            simbolo: r'$',
+            decimales: 0,
           ),
         ),
       ),
@@ -46,5 +48,38 @@ void main() {
     expect(decoracion.color, papel);
     expect(decoracion.borderRadius, BorderRadius.circular(16));
     expect(decoracion.border, Border.all(color: linea, width: 1));
+  });
+
+  testWidgets('usa la moneda configurada con decimales', (tester) async {
+    const producto = ProductoInventario(
+      productoId: 1,
+      nombre: 'Lentejas',
+      sku: 'SKU-1',
+      categoria: 'Abarrotes',
+      categoriaId: 1,
+      unidadMedida: 'UNIDAD',
+      cantidadActual: 10,
+      costoPromedio: 500,
+      stockMinimo: 5,
+      precioVenta: 6800,
+      stockBajo: false,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: construirTema(),
+        home: Scaffold(
+          body: FilaProductoPos(
+            producto: producto,
+            seleccionado: false,
+            alSeleccionar: () {},
+            simbolo: r'US$',
+            decimales: 2,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text(r'US$ 6.800,00'), findsOneWidget);
   });
 }

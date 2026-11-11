@@ -33,6 +33,8 @@ class CarritoController extends ChangeNotifier {
     required this.ajustes,
     this._repositorio,
     this.iconosCategoria = const {},
+    this.nombreEmpresa = '',
+    this.cajaAbierta = true,
   });
 
   static const double _pasoDecimal = 0.5;
@@ -40,6 +42,8 @@ class CarritoController extends ChangeNotifier {
 
   final AjustesVenta ajustes;
   final Map<int, String> iconosCategoria;
+  final String nombreEmpresa;
+  final bool cajaAbierta;
   final PosRepository? _repositorio;
 
   final List<LineaCarrito> _lineas = [];
@@ -78,6 +82,16 @@ class CarritoController extends ChangeNotifier {
 
   bool get esCredito => _formaPago?.esCredito ?? false;
 
+  String get nombreNegocio {
+    final recibo = ajustes.nombreRecibo.trim();
+    if (recibo.isNotEmpty) return recibo;
+    final empresa = nombreEmpresa.trim();
+    if (empresa.isNotEmpty) return empresa;
+    return 'Pymes ERP';
+  }
+
+  String get mensajePie => ajustes.mensajePieRecibo.trim();
+
   FormaPago? get _formaPago {
     if (_formaPagoId == null) return null;
     for (final forma in _formasPago) {
@@ -105,7 +119,7 @@ class CarritoController extends ChangeNotifier {
       CarritoController.redondearMoneda((subtotal - _descuento).toDouble());
 
   num get vuelto {
-    if (!esEfectivo) return 0;
+    if (!esEfectivo || _recibido == 0) return 0;
     return CarritoController.redondearMoneda((_recibido - total).toDouble());
   }
 
@@ -117,6 +131,7 @@ class CarritoController extends ChangeNotifier {
   bool get faltaCliente => clienteObligatorio && _clienteId == null;
 
   bool get puedeFinalizar =>
+      cajaAbierta &&
       _lineas.isNotEmpty &&
       _formaPagoId != null &&
       !faltaCliente &&
@@ -133,12 +148,15 @@ class CarritoController extends ChangeNotifier {
     return total;
   }
 
-  bool llegoAlTope(LineaCarrito linea) => linea.cantidad >= linea.producto.cantidadActual;
+  bool llegoAlTope(LineaCarrito linea) =>
+      linea.cantidad >= linea.producto.cantidadActual;
 
   num precioUnitario(LineaCarrito linea) => linea.producto.precioVenta;
 
-  String unidad(LineaCarrito linea) =>
-      abreviarUnidad(linea.producto.unidadMedida, linea.producto.cantidadActual);
+  String unidad(LineaCarrito linea) => abreviarUnidad(
+    linea.producto.unidadMedida,
+    linea.producto.cantidadActual,
+  );
 
   bool puedeSubir(LineaCarrito linea) => !llegoAlTope(linea);
 
@@ -353,6 +371,7 @@ class CarritoController extends ChangeNotifier {
     final repositorio = _repositorio;
     final venta = _ventaRegistrada;
     if (repositorio == null || venta == null) return false;
+    if (venta.estado == 'ANULADA') return true;
 
     _enviando = true;
     _error = null;

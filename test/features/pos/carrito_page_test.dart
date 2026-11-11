@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pymes_erp_mobile/app/theme.dart';
 import 'package:pymes_erp_mobile/core/productos/producto_inventario.dart';
+import 'package:pymes_erp_mobile/features/auth/data/auth_repository.dart';
+import 'package:pymes_erp_mobile/features/auth/data/models/usuario.dart';
+import 'package:pymes_erp_mobile/features/auth/presentation/auth_controller.dart';
 import 'package:pymes_erp_mobile/features/pos/data/models/ajustes_venta.dart';
 import 'package:pymes_erp_mobile/features/pos/data/models/categoria_pos.dart';
 import 'package:pymes_erp_mobile/features/pos/data/models/cliente_pos.dart';
@@ -40,8 +45,48 @@ ProductoInventario _producto(
   );
 }
 
+class _AuthFalso implements AuthRepository {
+  static const Usuario _usuario = Usuario(
+    id: 1,
+    empresaId: 7,
+    username: 'cajero',
+    email: 'cajero@test.com',
+  );
+
+  @override
+  Future<Usuario> login({
+    required String email,
+    required String password,
+  }) async => _usuario;
+
+  @override
+  Future<Usuario> registrar({
+    required String empresaNombre,
+    required String username,
+    required String email,
+    required String password,
+    required String codigoRegistro,
+  }) async => _usuario;
+
+  @override
+  Future<Usuario?> restaurarSesion() async => _usuario;
+
+  @override
+  Future<void> cerrarSesion() async {}
+
+  @override
+  Future<CredencialesRecordadas?> leerRecordadas() async => null;
+
+  @override
+  Future<void> recordar(String correo, String clave) async {}
+
+  @override
+  Future<void> olvidarRecordadas() async {}
+}
+
 class _RepoFalso implements PosRepository {
   VentaCreada? venta;
+  Completer<VentaCreada>? espera;
   bool boolCalled = false;
   bool anularCalled = false;
 
@@ -75,6 +120,7 @@ class _RepoFalso implements PosRepository {
     num descuento = 0,
   }) async {
     boolCalled = true;
+    if (espera != null) return espera!.future;
     return venta ??
         VentaCreada(
           id: 31,
@@ -100,12 +146,21 @@ class _RepoFalso implements PosRepository {
   }
 }
 
-CarritoController _carrito({PosRepository? repositorio}) {
+CarritoController _carrito({
+  PosRepository? repositorio,
+  AjustesVenta ajustes = const AjustesVenta(),
+  String nombreEmpresa = '',
+  bool cajaAbierta = true,
+}) {
   final carrito =
-      CarritoController(ajustes: const AjustesVenta(), repositorio: repositorio)
-        ..cargarFormasDePago(const [
-          FormaPago(id: 1, nombre: 'Efectivo', tipo: TipoFormaPago.efectivo),
-        ]);
+      CarritoController(
+        ajustes: ajustes,
+        repositorio: repositorio,
+        nombreEmpresa: nombreEmpresa,
+        cajaAbierta: cajaAbierta,
+      )..cargarFormasDePago(const [
+        FormaPago(id: 1, nombre: 'Efectivo', tipo: TipoFormaPago.efectivo),
+      ]);
   return carrito;
 }
 
@@ -220,6 +275,85 @@ void main() {
     });
   });
 
+  testWidgets('no muestra anular la venta en el carrito', (tester) async {
+    final repo = _RepoFalso();
+    final carrito = _carrito(repositorio: repo)
+      ..agregar(_producto(1, 'Arroz', precio: 4200));
+    await carrito.registrarVenta(7);
+
+    await tester.pumpWidget(_envolver(carrito, const CarritoPage()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Anular la venta'), findsNothing);
+    expect(find.text('Último paso'), findsOneWidget);
+  });
+
+  testWidgets('muestra la moneda configurada en el carrito', (tester) async {
+    final carrito = _carrito(
+      ajustes: const AjustesVenta(moneda: 'USD', simboloMoneda: 'US\$'),
+    )..agregar(_producto(1, 'Arroz', precio: 6800));
+
+    await tester.pumpWidget(_envolver(carrito, const CarritoPage()));
+    await tester.pumpAndSettle();
+
+    expect(find.text('US\$ 6.800,00'), findsNWidgets(2));
+  });
+
+  testWidgets('permite escribir una cantidad decimal manualmente', (
+    tester,
+  ) async {
+    final carrito = _carrito()
+      ..agregar(
+        _producto(
+          1,
+          'Lentejas',
+          unidad: 'KILOGRAMO',
+          cantidad: 10,
+          precio: 1000,
+        ),
+      );
+
+    await tester.pumpWidget(_envolver(carrito, const CarritoPage()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.bySemanticsLabel('Editar cantidad de Lentejas'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '1,3');
+    await tester.tap(find.text('Aplicar'));
+    await tester.pumpAndSettle();
+
+    expect(carrito.lineas.single.cantidad, 1.3);
+    expect(find.text('1,3'), findsOneWidget);
+    expect(find.text(r'$ 1.300'), findsNWidgets(2));
+  });
+
+  testWidgets('no permite superar el stock al editar la cantidad', (
+    tester,
+  ) async {
+    final carrito = _carrito()
+      ..agregar(
+        _producto(
+          1,
+          'Lentejas',
+          unidad: 'KILOGRAMO',
+          cantidad: 10,
+          precio: 1000,
+        ),
+      );
+
+    await tester.pumpWidget(_envolver(carrito, const CarritoPage()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.bySemanticsLabel('Editar cantidad de Lentejas'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), '99');
+    await tester.tap(find.text('Aplicar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('El máximo disponible es 10 kg.'), findsOneWidget);
+    expect(carrito.lineas.single.cantidad, 0.5);
+  });
+
   group('hoja de ultimo paso', () {
     testWidgets('muestra el subtotal, el descuento y el total', (tester) async {
       final carrito = CarritoController(ajustes: const AjustesVenta());
@@ -316,6 +450,105 @@ void main() {
       expect(find.text('Recibido'), findsOneWidget);
       expect(find.text('Vuelto'), findsOneWidget);
       expect(find.text('Efectivo'), findsOneWidget);
+    });
+
+    testWidgets('con la caja cerrada avisa y bloquea el finalizar', (
+      tester,
+    ) async {
+      final carrito = _carrito(cajaAbierta: false)
+        ..agregar(_producto(1, 'Arroz', precio: 4200));
+
+      await tester.pumpWidget(
+        _envolver(
+          carrito,
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => mostrarUltimoPaso(context, carrito),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('La caja está cerrada. Ábrela para registrar ventas.'),
+        findsOneWidget,
+      );
+      final boton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Finalizar venta'),
+      );
+      expect(boton.onPressed, isNull);
+    });
+
+    testWidgets('mientras envia deshabilita campos, selectores y cancelar', (
+      tester,
+    ) async {
+      final auth = AuthController(repositorio: _AuthFalso());
+      await auth.restaurar();
+      final repo = _RepoFalso();
+      final espera = Completer<VentaCreada>();
+      repo.espera = espera;
+      final carrito = _carrito(repositorio: repo)
+        ..agregar(_producto(1, 'Arroz', precio: 4200));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AuthController>.value(value: auth),
+            ChangeNotifierProvider<CarritoController>.value(value: carrito),
+          ],
+          child: MaterialApp(
+            theme: construirTema(),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => mostrarUltimoPaso(context, carrito),
+                  child: const Text('abrir'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Finalizar venta'));
+      await tester.pump();
+
+      expect(carrito.enviando, isTrue);
+      final campos = tester.widgetList<TextField>(find.byType(TextField));
+      expect(campos, isNotEmpty);
+      for (final campo in campos) {
+        expect(campo.enabled, isFalse);
+      }
+      final selector = tester.widget<PopupMenuButton<int>>(
+        find.byType(PopupMenuButton<int>).first,
+      );
+      expect(selector.enabled, isFalse);
+      final cancelar = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'Cancelar'),
+      );
+      expect(cancelar.onPressed, isNull);
+
+      espera.complete(
+        const VentaCreada(
+          id: 31,
+          numero: 'FAC-20261110-29091',
+          estado: 'EMITIDA',
+          subtotal: 4200,
+          descuento: 0,
+          total: 4200,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Venta registrada'), findsOneWidget);
     });
   });
 
@@ -434,5 +667,94 @@ void main() {
 
     expect(find.text('Nueva venta'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('la factura comparte y solo se cierra con Nueva venta', (
+    tester,
+  ) async {
+    final carrito =
+        _carrito(
+            nombreEmpresa: 'SuperMarket V',
+            ajustes: const AjustesVenta(
+              mensajePieRecibo: 'Gracias por su compra.',
+            ),
+          )
+          ..agregar(_producto(1, 'Arroz', precio: 4200))
+          ..cambiarDescuento(200)
+          ..cambiarRecibido(5000);
+    final venta = VentaCreada(
+      id: 1,
+      numero: 'FAC-20261111-00001',
+      estado: 'EMITIDA',
+      subtotal: 4200,
+      descuento: 200,
+      total: 4000,
+      fechaEmision: DateTime(2026, 11, 11, 18, 57),
+      clienteNombre: 'Yesenia Cassiani Díaz',
+      formaPagoNombre: 'Efectivo',
+      detalles: const [
+        DetalleVenta(
+          productoId: 1,
+          descripcion: 'Arroz',
+          cantidad: 1,
+          precioUnitario: 4200,
+          totalLinea: 4200,
+        ),
+      ],
+    );
+    String? compartido;
+    var nuevaVenta = false;
+
+    await tester.pumpWidget(
+      _envolver(
+        carrito,
+        Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => mostrarFactura(
+                context,
+                venta,
+                carrito,
+                alNuevaVenta: () => nuevaVenta = true,
+                alCompartir: (texto) async => compartido = texto,
+              ),
+              child: const Text('abrir factura'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('abrir factura'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('SuperMarket V'), findsOneWidget);
+    expect(find.text('Yesenia Cassiani Díaz'), findsOneWidget);
+    expect(find.text('Descuento'), findsOneWidget);
+    expect(find.text('Gracias por su compra.'), findsOneWidget);
+    expect(find.text('Compartir'), findsOneWidget);
+    expect(find.text('Nueva venta'), findsOneWidget);
+    expect(find.text('Cerrar'), findsNothing);
+
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Venta registrada'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Compartir'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Compartir'));
+    await tester.pump();
+    expect(compartido, contains('Recibo FAC-20261111-00001'));
+    expect(compartido, contains('Cliente: Yesenia Cassiani Díaz'));
+    expect(compartido, contains('Gracias por su compra.'));
+
+    await tester.ensureVisible(find.text('Nueva venta'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nueva venta'));
+    await tester.pumpAndSettle();
+
+    expect(nuevaVenta, isTrue);
+    expect(find.text('Venta registrada'), findsNothing);
+    expect(carrito.vacio, isTrue);
   });
 }

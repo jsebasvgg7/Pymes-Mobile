@@ -12,11 +12,13 @@ import 'factura_dialog.dart';
 
 Future<void> mostrarUltimoPaso(
   BuildContext context,
-  CarritoController carrito,
-) {
+  CarritoController carrito, {
+  VoidCallback? alNuevaVenta,
+}) {
   return mostrarHojaInferior(
     context: context,
-    builder: (hoja) => _UltimoPaso(hoja: hoja, carrito: carrito),
+    builder: (hoja) =>
+        _UltimoPaso(hoja: hoja, carrito: carrito, alNuevaVenta: alNuevaVenta),
   );
 }
 
@@ -32,6 +34,8 @@ Future<void> mostrarHojaInferior({
     showDragHandle: true,
     isScrollControlled: true,
     useSafeArea: true,
+    isDismissible: false,
+    enableDrag: false,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -40,10 +44,15 @@ Future<void> mostrarHojaInferior({
 }
 
 class _UltimoPaso extends StatefulWidget {
-  const _UltimoPaso({required this.hoja, required this.carrito});
+  const _UltimoPaso({
+    required this.hoja,
+    required this.carrito,
+    this.alNuevaVenta,
+  });
 
   final BuildContext hoja;
   final CarritoController carrito;
+  final VoidCallback? alNuevaVenta;
 
   @override
   State<_UltimoPaso> createState() => _UltimoPasoState();
@@ -117,159 +126,183 @@ class _UltimoPasoState extends State<_UltimoPaso> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        bottom: 20 + MediaQuery.paddingOf(context).bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Último paso',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 20),
-          _Fila(etiqueta: 'Subtotal', valor: _moneda(carrito.subtotal)),
-          const SizedBox(height: 12),
-          _Fila(
-            etiqueta: 'Descuento',
-            control: _CampoMoneda(
-              controller: _descuento,
-              simbolo: _simbolo,
-              decimales: _decimales,
-              alCambiar: _aplicarDescuento,
+    return PopScope(
+      canPop: !carrito.enviando,
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          bottom: 20 + MediaQuery.paddingOf(context).bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Último paso',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
             ),
-          ),
-          const SizedBox(height: 12),
-          _Fila(
-            etiqueta: 'Cliente',
-            control: _Selector(
-              texto: _nombreCliente(),
-              opciones: widget.carrito.clientes
-                  .map((c) => (valor: c.id, texto: c.nombre))
-                  .toList(),
-              alElegir: (valor) => carrito.elegirCliente(valor),
-            ),
-          ),
-          const SizedBox(height: 12),
-          _Fila(
-            etiqueta: 'Método de pago',
-            control: _Selector(
-              texto: _nombreFormaPago(),
-              opciones: widget.carrito.formasDePago
-                  .map((f) => (valor: f.id, texto: f.nombre))
-                  .toList(),
-              alElegir: (valor) => carrito.elegirFormaDePago(valor),
-            ),
-          ),
-          if (carrito.esEfectivo) ...[
+            const SizedBox(height: 20),
+            _Fila(etiqueta: 'Subtotal', valor: _moneda(carrito.subtotal)),
             const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: superficie,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                children: [
-                  _Fila(
-                    etiqueta: 'Recibido',
-                    control: _CampoMoneda(
-                      controller: _recibido,
-                      simbolo: _simbolo,
-                      decimales: _decimales,
-                      alCambiar: _aplicarRecibido,
-                      fondo: papel,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _Fila(
-                    etiqueta: 'Vuelto',
-                    valor: _moneda(carrito.vuelto > 0 ? carrito.vuelto : 0),
-                    colorValor: carrito.vuelto > 0 ? positivo : textoSecundario,
-                  ),
-                ],
+            _Fila(
+              etiqueta: 'Descuento',
+              control: _CampoMoneda(
+                controller: _descuento,
+                simbolo: _simbolo,
+                decimales: _decimales,
+                alCambiar: _aplicarDescuento,
+                habilitado: !carrito.enviando,
               ),
             ),
-          ],
-          const SizedBox(height: 20),
-          const Divider(height: 1, color: linea),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              const Text(
-                'Total',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            const SizedBox(height: 12),
+            _Fila(
+              etiqueta: 'Cliente',
+              control: _Selector(
+                texto: _nombreCliente(),
+                opciones: widget.carrito.clientes
+                    .map((c) => (valor: c.id, texto: c.nombre))
+                    .toList(),
+                alElegir: (valor) => carrito.elegirCliente(valor),
+                habilitado: !carrito.enviando,
               ),
-              const Spacer(),
-              Text(
-                _moneda(carrito.total),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+            ),
+            const SizedBox(height: 12),
+            _Fila(
+              etiqueta: 'Método de pago',
+              control: _Selector(
+                texto: _nombreFormaPago(),
+                opciones: widget.carrito.formasDePago
+                    .map((f) => (valor: f.id, texto: f.nombre))
+                    .toList(),
+                alElegir: (valor) => carrito.elegirFormaDePago(valor),
+                habilitado: !carrito.enviando,
+              ),
+            ),
+            if (carrito.esEfectivo) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: superficie,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    _Fila(
+                      etiqueta: 'Recibido',
+                      control: _CampoMoneda(
+                        controller: _recibido,
+                        simbolo: _simbolo,
+                        decimales: _decimales,
+                        alCambiar: _aplicarRecibido,
+                        fondo: papel,
+                        habilitado: !carrito.enviando,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _Fila(
+                      etiqueta: 'Vuelto',
+                      valor: _moneda(carrito.vuelto > 0 ? carrito.vuelto : 0),
+                      colorValor: carrito.vuelto > 0
+                          ? positivo
+                          : textoSecundario,
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-          if (carrito.faltaEfectivo) ...[
-            const SizedBox(height: 10),
-            Text(
-              'Faltan ${_moneda(carrito.total - carrito.recibido)}',
-              style: const TextStyle(fontSize: 13, color: negativo),
-            ),
-          ],
-          if (carrito.faltaCliente) ...[
-            const SizedBox(height: 10),
-            const Text(
-              'Elige un cliente para continuar.',
-              style: TextStyle(fontSize: 13, color: negativo),
-            ),
-          ],
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: carrito.puedeFinalizar && !carrito.enviando
-                ? () => _finalizar(context)
-                : null,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(26),
-              ),
-            ),
-            child: carrito.enviando
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: papel,
-                    ),
-                  )
-                : const Text(
-                    'Finalizar venta',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            const SizedBox(height: 20),
+            const Divider(height: 1, color: linea),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Text(
+                  'Total',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const Spacer(),
+                Text(
+                  _moneda(carrito.total),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
                   ),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(52),
-              foregroundColor: tintaPrincipal,
-              side: const BorderSide(color: linea),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(26),
+                ),
+              ],
+            ),
+            if (carrito.faltaEfectivo) ...[
+              const SizedBox(height: 10),
+              Text(
+                'Faltan ${_moneda(carrito.total - carrito.recibido)}',
+                style: const TextStyle(fontSize: 13, color: negativo),
+              ),
+            ],
+            if (carrito.faltaCliente) ...[
+              const SizedBox(height: 10),
+              const Text(
+                'Elige un cliente para continuar.',
+                style: TextStyle(fontSize: 13, color: negativo),
+              ),
+            ],
+            if (!carrito.cajaAbierta) ...[
+              const SizedBox(height: 10),
+              const Text(
+                'La caja está cerrada. Ábrela para registrar ventas.',
+                style: TextStyle(fontSize: 13, color: negativo),
+              ),
+            ],
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: carrito.puedeFinalizar && !carrito.enviando
+                  ? () => _finalizar(context)
+                  : null,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(26),
+                ),
+              ),
+              child: carrito.enviando
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: papel,
+                      ),
+                    )
+                  : const Text(
+                      'Finalizar venta',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: carrito.enviando
+                  ? null
+                  : () => Navigator.of(context).pop(),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                foregroundColor: tintaPrincipal,
+                side: const BorderSide(color: linea),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(26),
+                ),
+              ),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
             ),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -285,7 +318,14 @@ class _UltimoPasoState extends State<_UltimoPaso> {
       return;
     }
     Navigator.of(context).pop();
-    if (context.mounted) await mostrarFactura(context, venta, carrito);
+    if (context.mounted) {
+      await mostrarFactura(
+        context,
+        venta,
+        carrito,
+        alNuevaVenta: widget.alNuevaVenta,
+      );
+    }
   }
 
   void _mostrarError(String? mensaje) {
@@ -374,6 +414,7 @@ class _CampoMoneda extends StatelessWidget {
     required this.decimales,
     required this.alCambiar,
     this.fondo = superficie,
+    this.habilitado = true,
   });
 
   final TextEditingController controller;
@@ -381,6 +422,7 @@ class _CampoMoneda extends StatelessWidget {
   final int decimales;
   final ValueChanged<String> alCambiar;
   final Color fondo;
+  final bool habilitado;
 
   @override
   Widget build(BuildContext context) {
@@ -403,7 +445,8 @@ class _CampoMoneda extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
-              onChanged: alCambiar,
+              enabled: habilitado,
+              onChanged: habilitado ? alCambiar : null,
               textAlign: TextAlign.right,
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -430,11 +473,13 @@ class _Selector extends StatelessWidget {
     required this.texto,
     required this.opciones,
     required this.alElegir,
+    this.habilitado = true,
   });
 
   final String texto;
   final List<({int valor, String texto})> opciones;
   final ValueChanged<int?> alElegir;
+  final bool habilitado;
 
   @override
   Widget build(BuildContext context) {
@@ -447,6 +492,7 @@ class _Selector extends StatelessWidget {
         border: Border.all(color: linea),
       ),
       child: PopupMenuButton<int>(
+        enabled: habilitado,
         onSelected: alElegir,
         position: PopupMenuPosition.under,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

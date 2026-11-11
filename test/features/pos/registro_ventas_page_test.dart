@@ -87,10 +87,13 @@ class _AuthFalso implements AuthRepository {
 }
 
 class _RepoFalso implements PosRepository {
+  int cargasProductos = 0;
+
   @override
-  Future<List<ProductoInventario>> productos(int empresaId) async => [
-    _producto(1, 'Arroz'),
-  ];
+  Future<List<ProductoInventario>> productos(int empresaId) async {
+    cargasProductos++;
+    return [_producto(1, 'Arroz')];
+  }
 
   @override
   Future<List<CategoriaPos>> categorias(int empresaId) async => const [
@@ -123,7 +126,14 @@ class _RepoFalso implements PosRepository {
     required List<LineaVenta> lineas,
     int? clienteId,
     num descuento = 0,
-  }) async => throw UnimplementedError();
+  }) async => const VentaCreada(
+    id: 31,
+    numero: 'FAC-20261110-29091',
+    estado: 'EMITIDA',
+    subtotal: 1000,
+    descuento: 0,
+    total: 1000,
+  );
 
   @override
   Future<VentaCreada> anularVenta(int facturaId) async =>
@@ -154,6 +164,8 @@ void main() {
           ),
           seleccionado: false,
           alSeleccionar: () {},
+          simbolo: r'$',
+          decimales: 0,
         ),
       ),
     );
@@ -173,6 +185,8 @@ void main() {
           producto: _producto(1, 'Arroz', cantidad: 0),
           seleccionado: false,
           alSeleccionar: () => toques++,
+          simbolo: r'$',
+          decimales: 0,
         ),
       ),
     );
@@ -208,6 +222,8 @@ void main() {
           producto: _producto(1, 'Aceite Vegetal 1 L', precio: 11500),
           seleccionado: false,
           alSeleccionar: () {},
+          simbolo: r'$',
+          decimales: 0,
         ),
       ),
     );
@@ -259,4 +275,50 @@ void main() {
       );
     },
   );
+
+  testWidgets('Nueva venta vuelve al POS y recarga los productos', (
+    tester,
+  ) async {
+    final auth = AuthController(repositorio: _AuthFalso());
+    final repo = _RepoFalso();
+    await auth.restaurar();
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AuthController>.value(value: auth),
+          Provider<PosRepository>.value(value: repo),
+        ],
+        child: MaterialApp(
+          theme: construirTema(),
+          home: const Scaffold(body: RegistroVentasPage()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(repo.cargasProductos, 1);
+
+    await tester.tap(find.text('Arroz'));
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel(RegExp('Carrito con 1 productos')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Último paso'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Finalizar venta'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Venta registrada'), findsOneWidget);
+
+    await tester.tap(find.text('Nueva venta'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Venta registrada'), findsNothing);
+    expect(repo.cargasProductos, 2);
+    expect(
+      find.bySemanticsLabel(RegExp('Carrito con 0 productos')),
+      findsOneWidget,
+    );
+  });
 }

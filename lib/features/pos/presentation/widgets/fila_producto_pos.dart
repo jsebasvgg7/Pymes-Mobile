@@ -12,11 +12,15 @@ class FilaProductoPos extends StatelessWidget {
     required this.producto,
     required this.seleccionado,
     required this.alSeleccionar,
+    required this.simbolo,
+    required this.decimales,
   });
 
   final ProductoInventario producto;
   final bool seleccionado;
   final VoidCallback alSeleccionar;
+  final String simbolo;
+  final int decimales;
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +103,11 @@ class FilaProductoPos extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  formatearMoneda(producto.precioVenta),
+                  formatearMonedaConfigurada(
+                    producto.precioVenta,
+                    simbolo: simbolo,
+                    decimales: decimales,
+                  ),
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

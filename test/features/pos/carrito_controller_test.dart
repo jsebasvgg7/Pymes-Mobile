@@ -43,9 +43,16 @@ const FormaPago _credito = FormaPago(
 
 const ClientePos _cliente = ClientePos(id: 8, nombre: 'Don Carlos');
 
-CarritoController _controlador({AjustesVenta? ajustes}) {
-  return CarritoController(ajustes: ajustes ?? const AjustesVenta())
-    ..cargarFormasDePago(const [_efectivo, _credito]);
+CarritoController _controlador({
+  AjustesVenta? ajustes,
+  String nombreEmpresa = '',
+  bool cajaAbierta = true,
+}) {
+  return CarritoController(
+    ajustes: ajustes ?? const AjustesVenta(),
+    nombreEmpresa: nombreEmpresa,
+    cajaAbierta: cajaAbierta,
+  )..cargarFormasDePago(const [_efectivo, _credito]);
 }
 
 void main() {
@@ -282,13 +289,15 @@ void main() {
       expect(controlador.puedeFinalizar, isFalse);
     });
 
-    test('sin recibido no hay falta de efectivo', () {
+    test('sin recibido se asume pago exacto y el vuelto es cero', () {
       final controlador = _controlador();
       controlador.agregar(_producto(1, 'Arroz', precio: 31400));
 
       controlador.cambiarRecibido(0);
 
       expect(controlador.faltaEfectivo, isFalse);
+      expect(controlador.vuelto, 0);
+      expect(controlador.puedeFinalizar, isTrue);
     });
 
     test('con tarjeta o crédito no hay recibido ni vuelto', () {
@@ -309,6 +318,45 @@ void main() {
       controlador.cambiarRecibido(-100);
 
       expect(controlador.recibido, 0);
+    });
+  });
+
+  group('regla 7: caja', () {
+    test('con la caja cerrada no se puede finalizar', () {
+      final controlador = _controlador(cajaAbierta: false);
+      controlador.agregar(_producto(1, 'Arroz'));
+
+      expect(controlador.puedeFinalizar, isFalse);
+    });
+
+    test('con la caja abierta se puede finalizar', () {
+      final controlador = _controlador();
+      controlador.agregar(_producto(1, 'Arroz'));
+
+      expect(controlador.puedeFinalizar, isTrue);
+    });
+  });
+
+  group('nombre del negocio', () {
+    test('usa el nombre del recibo si está configurado', () {
+      final controlador = _controlador(
+        ajustes: const AjustesVenta(nombreRecibo: 'Caja principal'),
+        nombreEmpresa: 'SuperMarket V',
+      );
+
+      expect(controlador.nombreNegocio, 'Caja principal');
+    });
+
+    test('si no hay nombre de recibo usa el de la empresa', () {
+      final controlador = _controlador(nombreEmpresa: 'SuperMarket V');
+
+      expect(controlador.nombreNegocio, 'SuperMarket V');
+    });
+
+    test('sin nombres cae en Pymes ERP', () {
+      final controlador = _controlador();
+
+      expect(controlador.nombreNegocio, 'Pymes ERP');
     });
   });
 

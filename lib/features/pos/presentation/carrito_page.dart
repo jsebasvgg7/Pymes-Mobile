@@ -8,28 +8,36 @@ import 'carrito_controller.dart';
 import 'ultimo_paso_sheet.dart';
 import 'widgets/tarjeta_linea_carrito.dart';
 
-Future<void> abrirCarrito(BuildContext context, CarritoController carrito) {
+Future<void> abrirCarrito(
+  BuildContext context,
+  CarritoController carrito, {
+  VoidCallback? alNuevaVenta,
+}) {
   return Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
       builder: (_) => ChangeNotifierProvider<CarritoController>.value(
         value: carrito,
-        child: const CarritoPage(),
+        child: CarritoPage(alNuevaVenta: alNuevaVenta),
       ),
     ),
   );
 }
 
 class CarritoPage extends StatelessWidget {
-  const CarritoPage({super.key});
+  const CarritoPage({super.key, this.alNuevaVenta});
+
+  final VoidCallback? alNuevaVenta;
 
   @override
   Widget build(BuildContext context) {
-    return const _VistaCarrito();
+    return _VistaCarrito(alNuevaVenta: alNuevaVenta);
   }
 }
 
 class _VistaCarrito extends StatelessWidget {
-  const _VistaCarrito();
+  const _VistaCarrito({this.alNuevaVenta});
+
+  final VoidCallback? alNuevaVenta;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +64,8 @@ class _VistaCarrito extends StatelessWidget {
                       },
                     ),
             ),
-            if (carrito.cantidadProductos > 0) _Pie(carrito: carrito),
+            if (carrito.cantidadProductos > 0)
+              _Pie(carrito: carrito, alNuevaVenta: alNuevaVenta),
           ],
         ),
       ),
@@ -120,9 +129,10 @@ class _Encabezado extends StatelessWidget {
 }
 
 class _Pie extends StatelessWidget {
-  const _Pie({required this.carrito});
+  const _Pie({required this.carrito, this.alNuevaVenta});
 
   final CarritoController carrito;
+  final VoidCallback? alNuevaVenta;
 
   @override
   Widget build(BuildContext context) {
@@ -164,26 +174,9 @@ class _Pie extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          if (carrito.ventaRegistrada != null) ...[
-            OutlinedButton(
-              onPressed: carrito.enviando ? null : () => _anular(context),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-                foregroundColor: negativo,
-                side: const BorderSide(color: linea),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-              child: const Text(
-                'Anular la venta',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
           FilledButton(
-            onPressed: () => mostrarUltimoPaso(context, carrito),
+            onPressed: () =>
+                mostrarUltimoPaso(context, carrito, alNuevaVenta: alNuevaVenta),
             style: FilledButton.styleFrom(
               minimumSize: const Size.fromHeight(56),
               shape: RoundedRectangleBorder(
@@ -198,20 +191,6 @@ class _Pie extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _anular(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final ok = await carrito.anularVenta();
-    if (!ok) {
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(carrito.error ?? 'No pudimos anular la venta.'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: tintaPrincipal,
-        ),
-      );
-    }
   }
 }
 
@@ -249,7 +228,11 @@ class _CarritoVacio extends StatelessWidget {
             child: Text(
               'Agrega productos desde el registro de ventas para empezar una venta.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, height: 1.4, color: textoSecundario),
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: textoSecundario,
+              ),
             ),
           ),
         ],

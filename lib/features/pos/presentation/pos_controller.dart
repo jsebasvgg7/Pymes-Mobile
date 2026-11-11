@@ -51,6 +51,8 @@ class PosController extends ChangeNotifier {
       ajustes: _ajustes,
       repositorio: _repositorio,
       iconosCategoria: _iconosCategoria,
+      nombreEmpresa: _nombreEmpresa,
+      cajaAbierta: !sinCajaAbierta,
     );
     _carrito = nuevo;
     return nuevo;
@@ -116,13 +118,16 @@ class PosController extends ChangeNotifier {
       _ajustes = ajustes;
       _cajas = cajas;
       _nombreEmpresa = empresa;
-      _carrito = CarritoController(
-        ajustes: ajustes,
-        repositorio: _repositorio,
-        iconosCategoria: _iconosCategoria,
-      )
-        ..cargarFormasDePago(formas)
-        ..cargarClientes(clientes);
+      _carrito =
+          CarritoController(
+              ajustes: ajustes,
+              repositorio: _repositorio,
+              iconosCategoria: _iconosCategoria,
+              nombreEmpresa: empresa,
+              cajaAbierta: !sinCajaAbierta,
+            )
+            ..cargarFormasDePago(formas)
+            ..cargarClientes(clientes);
       _estado = EstadoPos.listo;
     } catch (e) {
       _error = 'No pudimos cargar el punto de venta. Revisa tu conexión.';
