@@ -2,10 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
+import '../../../core/format/cantidad.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/productos/producto_inventario.dart';
 import '../data/models/ajustes_venta.dart';
 import '../data/models/cliente_pos.dart';
 import '../data/models/forma_pago.dart';
+import '../data/models/venta_creada.dart';
+import '../data/pos_repository.dart';
 
 class LineaCarrito {
   const LineaCarrito({required this.producto, required this.cantidad});
@@ -24,12 +28,12 @@ class LineaCarrito {
 enum EstadoVenta { vacio, listo, error }
 
 class CarritoController extends ChangeNotifier {
-  CarritoController({required this.ajustes});
-
+  CarritoController({required this.ajustes, this._repositorio});
   static const double _pasoDecimal = 0.5;
   static const int _maxDecimales = 3;
 
   final AjustesVenta ajustes;
+  final PosRepository? _repositorio;
 
   final List<LineaCarrito> _lineas = [];
   final Map<int, ProductoInventario> _productos = {};
@@ -40,6 +44,8 @@ class CarritoController extends ChangeNotifier {
   num _recibido = 0;
   EstadoVenta _estado = EstadoVenta.vacio;
   String? _error;
+  VentaCreada? _ventaRegistrada;
+  bool _enviando = false;
 
   List<LineaCarrito> get lineas => List.unmodifiable(_lineas);
 
@@ -54,6 +60,12 @@ class CarritoController extends ChangeNotifier {
   EstadoVenta get estado => _estado;
 
   String? get error => _error;
+
+  /// La venta ya registrada, si la hay.
+  VentaCreada? get ventaRegistrada => _ventaRegistrada;
+
+  /// Si se esta enviando la venta.
+  bool get enviando => _enviando;
 
   bool get vacio => _lineas.isEmpty;
 
@@ -115,6 +127,20 @@ class CarritoController extends ChangeNotifier {
     }
     return total;
   }
+
+  /// Si se puede restar un paso a la linea sin llegar a cero.
+  /// Si la linea ya llego al tope de stock.
+  bool llegoAlTope(LineaCarrito linea) => linea.cantidad >= linea.producto.cantidadActual;
+
+  /// El precio de una unidad, como lo muestra el carrito ("$ 6.800 / kg").
+  num precioUnitario(LineaCarrito linea) => linea.producto.precioVenta;
+
+  /// El nombre corto de la unidad ("kg", "und", "L").
+  String unidad(LineaCarrito linea) =>
+      abreviarUnidad(linea.producto.unidadMedida, linea.producto.cantidadActual);
+
+  /// Si la linea esta en el tope y no se puede subir mas.
+  bool puedeSubir(LineaCarrito linea) => !llegoAlTope(linea);
 
   void cargarFormasDePago(List<FormaPago> formas) {
     _formasPago = formas.where((forma) => forma.activo).toList();
@@ -268,6 +294,91 @@ class CarritoController extends ChangeNotifier {
     _error = null;
     _estado = _lineas.isEmpty ? EstadoVenta.vacio : EstadoVenta.listo;
     _notificar();
+  }
+
+  /// Registra la venta. Nunca se reintenta solo (regla 17 del plan): si la
+  /// respuesta no llega, se avisa para revisar las ventas antes de repetir.
+  Future<VentaCreada?> registrarVenta(int empresaId) async {
+    final repositorio = _repositorio;
+    final formaPagoId = _formaPagoId;
+    if (repositorio == null || formaPagoId == null) return null;
+    if (_enviando) return null;
+
+    _enviando = true;
+    _error = null;
+    _notificar();
+    try {
+      final venta = await repositorio.crearVenta(
+        empresaId: empresaId,
+        formaPagoId: formaPagoId,
+        clienteId: _clienteId,
+        descuento: _descuento,
+        lineas: _lineas
+            .map(
+              (linea) => LineaVenta(
+                productoId: linea.producto.productoId,
+                descripcion: linea.producto.nombre,
+                cantidad: linea.cantidad,
+                precioUnitario: linea.producto.precioVenta,
+              ),
+            )
+            .toList(),
+      );
+      _ventaRegistrada = venta;
+      _enviando = false;
+      _estado = EstadoVenta.listo;
+      _notificar();
+      return venta;
+    } on ApiException catch (e) {
+      _enviando = false;
+      _error = e.mensaje;
+      _estado = EstadoVenta.error;
+      _notificar();
+      return null;
+    } catch (_) {
+      _enviando = false;
+      _error = 'No pudimos registrar la venta. Revisa las ventas antes de intentar de nuevo.';
+      _estado = EstadoVenta.error;
+      _notificar();
+      return null;
+    }
+  }
+
+  /// Anula la venta registrada.
+  Future<bool> anularVenta() async {
+    final repositorio = _repositorio;
+    final venta = _ventaRegistrada;
+    if (repositorio == null || venta == null) return false;
+
+    _enviando = true;
+    _error = null;
+    _notificar();
+    try {
+      final anulada = await repositorio.anularVenta(venta.id);
+      _ventaRegistrada = anulada;
+      _enviando = false;
+      _estado = EstadoVenta.listo;
+      _notificar();
+      return true;
+    } on ApiException catch (e) {
+      _enviando = false;
+      _error = e.mensaje;
+      _estado = EstadoVenta.error;
+      _notificar();
+      return false;
+    } catch (_) {
+      _enviando = false;
+      _error = 'No pudimos anular la venta.';
+      _estado = EstadoVenta.error;
+      _notificar();
+      return false;
+    }
+  }
+
+  /// Descarta la venta registrada y deja el carrito listo para otra.
+  void nuevaVenta() {
+    _ventaRegistrada = null;
+    limpiar();
   }
 
   LineaCarrito? _buscar(int productoId) {

@@ -47,7 +47,10 @@ class PosController extends ChangeNotifier {
   CarritoController get carrito {
     final existente = _carrito;
     if (existente != null) return existente;
-    final nuevo = CarritoController(ajustes: _ajustes);
+    final nuevo = CarritoController(
+      ajustes: _ajustes,
+      repositorio: _repositorio,
+    );
     _carrito = nuevo;
     return nuevo;
   }
@@ -106,7 +109,10 @@ class PosController extends ChangeNotifier {
       _ajustes = ajustes;
       _cajas = cajas;
       _nombreEmpresa = empresa;
-      _carrito = CarritoController(ajustes: ajustes)
+      _carrito = CarritoController(
+        ajustes: ajustes,
+        repositorio: _repositorio,
+      )
         ..cargarFormasDePago(formas)
         ..cargarClientes(clientes);
       _estado = EstadoPos.listo;

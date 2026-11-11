@@ -7,6 +7,7 @@ import '../../../core/widgets/estado_carga.dart';
 import '../../../core/widgets/estado_error.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/pos_repository.dart';
+import 'carrito_page.dart';
 import 'pos_controller.dart';
 import 'widgets/carrusel_categorias.dart';
 import 'widgets/fila_producto_pos.dart';
@@ -134,7 +135,7 @@ class _Contenido extends StatelessWidget {
               const SizedBox(width: 10),
               _BotonCarrito(
                 cantidad: carrito.cantidadProductos,
-                alTocar: () {},
+                alTocar: () => abrirCarrito(context, carrito),
               ),
             ],
           ),
