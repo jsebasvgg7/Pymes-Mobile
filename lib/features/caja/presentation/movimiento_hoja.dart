@@ -5,6 +5,7 @@ import '../data/models/movimiento_caja.dart';
 import 'caja_controller.dart';
 import 'monto_caja.dart';
 import 'widgets/campo_monto_caja.dart';
+import 'widgets/selector_forma_pago.dart';
 
 class MovimientoHoja extends StatefulWidget {
   const MovimientoHoja({super.key, required this.controlador});
@@ -147,34 +148,10 @@ class _MovimientoHojaState extends State<MovimientoHoja> {
             ),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: formas.map((forma) {
-              final seleccionado = _formaPagoId == forma.id;
-              return ChoiceChip(
-                label: Text(
-                  forma.nombre,
-                  style: TextStyle(
-                    color: seleccionado ? tintaPrincipal : textoSecundario,
-                    fontWeight: seleccionado
-                        ? FontWeight.w700
-                        : FontWeight.w500,
-                  ),
-                ),
-                selected: seleccionado,
-                onSelected: (_) => setState(() => _formaPagoId = forma.id),
-                selectedColor: tintaPrincipal.withValues(alpha: 0.1),
-                backgroundColor: superficie,
-                side: BorderSide(
-                  color: seleccionado ? tintaPrincipal : linea,
-                  width: 1.2,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              );
-            }).toList(),
+          SelectorFormaPago(
+            formas: formas,
+            seleccionadaId: _formaPagoId,
+            alSeleccionar: (id) => setState(() => _formaPagoId = id),
           ),
           const SizedBox(height: 16),
           const Text(

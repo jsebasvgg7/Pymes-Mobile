@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
+import 'etiqueta_adaptable.dart';
 
 class AccionesCaja extends StatelessWidget {
   const AccionesCaja({
@@ -22,11 +23,30 @@ class AccionesCaja extends StatelessWidget {
   final VoidCallback? alReabrir;
   final VoidCallback? alMovimiento;
 
+  Widget _etiqueta(String texto, String? textoCorto) {
+    const estilo = TextStyle(fontSize: 15, fontWeight: FontWeight.w700);
+    if (textoCorto == null) {
+      return Text(
+        texto,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.ellipsis,
+        style: estilo,
+      );
+    }
+    return EtiquetaAdaptable(
+      completa: texto,
+      corta: textoCorto,
+      estilo: estilo,
+    );
+  }
+
   Widget _botonFilled(
     BuildContext context,
     String texto,
-    VoidCallback alPulsar,
-  ) {
+    VoidCallback alPulsar, {
+    String? textoCorto,
+  }) {
     return FilledButton(
       onPressed: ocupado ? null : alPulsar,
       style: FilledButton.styleFrom(
@@ -35,18 +55,16 @@ class AccionesCaja extends StatelessWidget {
         minimumSize: const Size.fromHeight(48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
-      child: Text(
-        texto,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-      ),
+      child: _etiqueta(texto, textoCorto),
     );
   }
 
   Widget _botonOutlined(
     BuildContext context,
     String texto,
-    VoidCallback alPulsar,
-  ) {
+    VoidCallback alPulsar, {
+    String? textoCorto,
+  }) {
     return OutlinedButton(
       onPressed: ocupado ? null : alPulsar,
       style: OutlinedButton.styleFrom(
@@ -55,10 +73,7 @@ class AccionesCaja extends StatelessWidget {
         minimumSize: const Size.fromHeight(48),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
-      child: Text(
-        texto,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-      ),
+      child: _etiqueta(texto, textoCorto),
     );
   }
 
@@ -75,6 +90,7 @@ class AccionesCaja extends StatelessWidget {
                   context,
                   'Nuevo movimiento',
                   alMovimiento ?? alCerrar,
+                  textoCorto: 'Nuevo mov.',
                 ),
               ),
               const SizedBox(width: 12),
@@ -94,6 +110,7 @@ class AccionesCaja extends StatelessWidget {
               context,
               'Reabrir cierre',
               alReabrir ?? alAbrir,
+              textoCorto: 'Reabrir',
             ),
           ),
         ],

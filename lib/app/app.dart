@@ -12,6 +12,7 @@ import '../features/caja/data/caja_repository.dart';
 import '../features/dashboard/data/dashboard_repository.dart';
 import '../features/inventario/data/inventario_repository.dart';
 import '../features/pos/data/pos_repository.dart';
+import 'escala_texto.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -81,6 +82,8 @@ class _AppState extends State<App> {
           debugShowCheckedModeBanner: false,
           theme: construirTema(),
           routerConfig: _router,
+          builder: (contexto, hijo) =>
+              EscalaTexto(child: hijo ?? const SizedBox.shrink()),
         ),
       ),
     );

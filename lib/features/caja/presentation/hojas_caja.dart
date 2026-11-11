@@ -471,7 +471,7 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
                                   color: papel,
                                 ),
                               )
-                            : const Text('Confirmar cierre'),
+                            : const Text('Confirmar'),
                       ),
                     ),
                   ],
