@@ -69,8 +69,11 @@ class _UltimoPasoState extends State<_UltimoPaso> {
 
   int get _decimales => decimalesDeMoneda(ajustes.moneda);
 
-  String _moneda(num valor) =>
-      formatearMonedaConfigurada(valor, simbolo: _simbolo, decimales: _decimales);
+  String _moneda(num valor) => formatearMonedaConfigurada(
+    valor,
+    simbolo: _simbolo,
+    decimales: _decimales,
+  );
 
   @override
   void initState() {
@@ -125,14 +128,11 @@ class _UltimoPasoState extends State<_UltimoPaso> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Ultimo paso',
+            'Último paso',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 20),
-          _Fila(
-            etiqueta: 'Subtotal',
-            valor: _moneda(carrito.subtotal),
-          ),
+          _Fila(etiqueta: 'Subtotal', valor: _moneda(carrito.subtotal)),
           const SizedBox(height: 12),
           _Fila(
             etiqueta: 'Descuento',
@@ -156,7 +156,7 @@ class _UltimoPasoState extends State<_UltimoPaso> {
           ),
           const SizedBox(height: 12),
           _Fila(
-            etiqueta: 'Metodo de pago',
+            etiqueta: 'Método de pago',
             control: _Selector(
               texto: _nombreFormaPago(),
               opciones: widget.carrito.formasDePago
@@ -182,12 +182,13 @@ class _UltimoPasoState extends State<_UltimoPaso> {
                       simbolo: _simbolo,
                       decimales: _decimales,
                       alCambiar: _aplicarRecibido,
+                      fondo: papel,
                     ),
                   ),
                   const SizedBox(height: 8),
                   _Fila(
                     etiqueta: 'Vuelto',
-                    valor: _moneda(carrito.vuelto),
+                    valor: _moneda(carrito.vuelto > 0 ? carrito.vuelto : 0),
                     colorValor: carrito.vuelto > 0 ? positivo : textoSecundario,
                   ),
                 ],
@@ -206,7 +207,10 @@ class _UltimoPasoState extends State<_UltimoPaso> {
               const Spacer(),
               Text(
                 _moneda(carrito.total),
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -331,7 +335,7 @@ class _Fila extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Flexible(
+        Expanded(
           child: Text(
             etiqueta,
             maxLines: 1,
@@ -340,22 +344,24 @@ class _Fila extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        if (control != null)
-          control!
-        else
-          Flexible(
-            child: Text(
-              valor ?? '',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: colorValor ?? tintaPrincipal,
-              ),
-            ),
+        Flexible(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child:
+                control ??
+                Text(
+                  valor ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: colorValor ?? tintaPrincipal,
+                  ),
+                ),
           ),
+        ),
       ],
     );
   }
@@ -367,12 +373,14 @@ class _CampoMoneda extends StatelessWidget {
     required this.simbolo,
     required this.decimales,
     required this.alCambiar,
+    this.fondo = superficie,
   });
 
   final TextEditingController controller;
   final String simbolo;
   final int decimales;
   final ValueChanged<String> alCambiar;
+  final Color fondo;
 
   @override
   Widget build(BuildContext context) {
@@ -381,7 +389,7 @@ class _CampoMoneda extends StatelessWidget {
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: 14),
       decoration: BoxDecoration(
-        color: superficie,
+        color: fondo,
         borderRadius: BorderRadius.circular(22),
       ),
       child: Row(
@@ -397,14 +405,13 @@ class _CampoMoneda extends StatelessWidget {
               controller: controller,
               onChanged: alCambiar,
               textAlign: TextAlign.right,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
               ],
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               cursorColor: tintaPrincipal,
               decoration: const InputDecoration(
                 border: InputBorder.none,
@@ -442,24 +449,23 @@ class _Selector extends StatelessWidget {
       child: PopupMenuButton<int>(
         onSelected: alElegir,
         position: PopupMenuPosition.under,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         itemBuilder: (context) => [
           for (final opcion in opciones)
-            PopupMenuItem<int>(
-              value: opcion.valor,
-              child: Text(opcion.texto),
-            ),
+            PopupMenuItem<int>(value: opcion.valor, child: Text(opcion.texto)),
         ],
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              texto,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                texto,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(width: 6),

@@ -42,10 +42,8 @@ class _FacturaDialog extends StatelessWidget {
       backgroundColor: papel,
       surfaceTintColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Padding(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -143,6 +141,7 @@ class _FacturaDialog extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size.fromHeight(48),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       foregroundColor: tintaPrincipal,
                       side: const BorderSide(color: linea),
                       shape: RoundedRectangleBorder(
@@ -151,7 +150,10 @@ class _FacturaDialog extends StatelessWidget {
                     ),
                     child: const Text(
                       'Cerrar',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -164,13 +166,17 @@ class _FacturaDialog extends StatelessWidget {
                     },
                     style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(48),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
                     ),
                     child: const Text(
                       'Nueva venta',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -190,11 +196,7 @@ class _FacturaDialog extends StatelessWidget {
 }
 
 class _Dato extends StatelessWidget {
-  const _Dato({
-    required this.etiqueta,
-    required this.valor,
-    this.colorValor,
-  });
+  const _Dato({required this.etiqueta, required this.valor, this.colorValor});
 
   final String etiqueta;
   final String valor;

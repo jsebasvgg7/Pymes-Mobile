@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pymes_erp_mobile/app/theme.dart';
 import 'package:pymes_erp_mobile/core/productos/producto_inventario.dart';
@@ -11,6 +12,7 @@ import 'package:pymes_erp_mobile/features/pos/data/models/venta_creada.dart';
 import 'package:pymes_erp_mobile/features/pos/data/pos_repository.dart';
 import 'package:pymes_erp_mobile/features/pos/presentation/carrito_controller.dart';
 import 'package:pymes_erp_mobile/features/pos/presentation/carrito_page.dart';
+import 'package:pymes_erp_mobile/features/pos/presentation/factura_dialog.dart';
 import 'package:pymes_erp_mobile/features/pos/presentation/ultimo_paso_sheet.dart';
 import 'package:provider/provider.dart';
 
@@ -99,12 +101,11 @@ class _RepoFalso implements PosRepository {
 }
 
 CarritoController _carrito({PosRepository? repositorio}) {
-  final carrito = CarritoController(
-    ajustes: const AjustesVenta(),
-    repositorio: repositorio,
-  )..cargarFormasDePago(const [
-    FormaPago(id: 1, nombre: 'Efectivo', tipo: TipoFormaPago.efectivo),
-  ]);
+  final carrito =
+      CarritoController(ajustes: const AjustesVenta(), repositorio: repositorio)
+        ..cargarFormasDePago(const [
+          FormaPago(id: 1, nombre: 'Efectivo', tipo: TipoFormaPago.efectivo),
+        ]);
   return carrito;
 }
 
@@ -116,13 +117,24 @@ Widget _envolver(CarritoController carrito, Widget hijo) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    final cargador = FontLoader('Inter')
+      ..addFont(rootBundle.load('assets/fonts/Inter-Regular.otf'))
+      ..addFont(rootBundle.load('assets/fonts/Inter-Medium.otf'))
+      ..addFont(rootBundle.load('assets/fonts/Inter-SemiBold.otf'))
+      ..addFont(rootBundle.load('assets/fonts/Inter-Bold.otf'));
+    await cargador.load();
+  });
+
   group('pantalla del carrito', () {
     testWidgets('con el carrito vacio muestra el estado vacio', (tester) async {
       final carrito = CarritoController(ajustes: const AjustesVenta());
 
       await tester.pumpWidget(_envolver(carrito, const CarritoPage()));
 
-      expect(find.text('Tu carrito esta vacio'), findsOneWidget);
+      expect(find.text('Tu carrito está vacío'), findsOneWidget);
       expect(find.text('Subtotal'), findsNothing);
     });
 
@@ -131,27 +143,35 @@ void main() {
     ) async {
       final carrito = CarritoController(ajustes: const AjustesVenta());
       carrito.agregar(
-        _producto(1, 'Lentejas', unidad: 'KILOGRAMO', cantidad: 15.5, precio: 6800),
+        _producto(
+          1,
+          'Lentejas',
+          unidad: 'KILOGRAMO',
+          cantidad: 15.5,
+          precio: 6800,
+        ),
       );
 
       await tester.pumpWidget(_envolver(carrito, const CarritoPage()));
 
       expect(find.text('Lentejas'), findsOneWidget);
-      expect(find.text('Stock: 15,5 kg'), findsOneWidget);
-      expect(find.text(r'$ 3.400'), findsNWidgets(3));
-      expect(find.text(r'$ 6.800 / kg'), findsOneWidget);
-      expect(find.text('1 productos'), findsOneWidget);
+      expect(find.textContaining('Stock: 15,5 kg'), findsOneWidget);
+      expect(find.text(r'$ 3.400'), findsNWidgets(2));
+      expect(find.textContaining(r'$ 6.800 / kg'), findsOneWidget);
+      expect(find.text('1 Producto'), findsOneWidget);
     });
 
-    testWidgets('el boton Ultimo paso lleva el total', (tester) async {
+    testWidgets('el pie muestra el subtotal y el boton Último paso', (
+      tester,
+    ) async {
       final carrito = CarritoController(ajustes: const AjustesVenta());
       carrito.agregar(_producto(1, 'Arroz', precio: 4200));
 
       await tester.pumpWidget(_envolver(carrito, const CarritoPage()));
 
-      expect(find.text('Ultimo paso'), findsOneWidget);
+      expect(find.text('Último paso'), findsOneWidget);
       expect(find.text('Subtotal'), findsOneWidget);
-      expect(find.text(r'$ 4.200'), findsNWidgets(3));
+      expect(find.text(r'$ 4.200'), findsNWidgets(2));
     });
 
     testWidgets('el boton de sumar sube la cantidad', (tester) async {
@@ -160,13 +180,13 @@ void main() {
 
       await tester.pumpWidget(_envolver(carrito, const CarritoPage()));
 
-      expect(find.text('1 '), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
 
       await tester.tap(find.bySemanticsLabel('Sumar'));
       await tester.pump();
 
       expect(carrito.lineas.first.cantidad, 2);
-      expect(find.text('2 '), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
     });
 
     testWidgets('el boton de restar esta deshabilitado en la cantidad minima', (
@@ -184,7 +204,7 @@ void main() {
       expect(boton.properties.enabled, isFalse);
     });
 
-    testWidgets('deslizar una tarjeta quita el producto', (tester) async {
+    testWidgets('la papelera quita el producto', (tester) async {
       final carrito = CarritoController(ajustes: const AjustesVenta());
       carrito.agregar(_producto(1, 'Arroz'));
 
@@ -192,7 +212,7 @@ void main() {
 
       expect(find.text('Arroz'), findsOneWidget);
 
-      await tester.drag(find.text('Arroz'), const Offset(-500, 0));
+      await tester.tap(find.bySemanticsLabel('Quitar Arroz'));
       await tester.pumpAndSettle();
 
       expect(find.text('Arroz'), findsNothing);
@@ -222,13 +242,53 @@ void main() {
       await tester.tap(find.text('abrir'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Ultimo paso'), findsOneWidget);
+      expect(find.text('Último paso'), findsOneWidget);
       expect(find.text('Subtotal'), findsOneWidget);
       expect(find.text('Descuento'), findsOneWidget);
       expect(find.text('Cliente'), findsOneWidget);
-      expect(find.text('Metodo de pago'), findsOneWidget);
+      expect(find.text('Método de pago'), findsOneWidget);
       expect(find.text('Total'), findsOneWidget);
       expect(find.text('Finalizar venta'), findsOneWidget);
+    });
+
+    testWidgets('alinea los valores y controles a la derecha', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final carrito = _carrito()
+        ..cargarClientes(const [ClientePos(id: 8, nombre: 'Don Carlos')])
+        ..agregar(_producto(1, 'Arroz', precio: 4200))
+        ..cambiarDescuento(200);
+
+      await tester.pumpWidget(
+        _envolver(
+          carrito,
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => mostrarUltimoPaso(context, carrito),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('abrir'));
+      await tester.pumpAndSettle();
+
+      final subtotal = tester.getRect(find.text(r'$ 4.200'));
+      final total = tester.getRect(find.text(r'$ 4.000'));
+      final cliente = tester.getRect(find.text('Sin cliente'));
+      final metodo = tester.getRect(find.text('Efectivo'));
+
+      expect(subtotal.right, closeTo(370, 1));
+      expect(total.right, closeTo(370, 1));
+      expect(cliente.right, greaterThan(300));
+      expect(metodo.right, greaterThan(300));
+      expect(tester.getRect(find.text('Cliente')).left, closeTo(20, 1));
     });
 
     testWidgets('con efectivo muestra recibido y vuelto', (tester) async {
@@ -307,5 +367,72 @@ void main() {
       expect(venta, isNull);
       expect(carrito.ventaRegistrada, isNull);
     });
+  });
+
+  testWidgets('la factura no desborda en una pantalla pequena', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final carrito = _carrito();
+    final venta = VentaCreada(
+      id: 1,
+      numero: 'FAC-20261111-00001',
+      estado: 'EMITIDA',
+      subtotal: 60000,
+      descuento: 0,
+      total: 60000,
+      fechaEmision: DateTime(2026, 11, 11, 18, 57),
+      formaPagoNombre: 'Efectivo',
+      detalles: [
+        for (var i = 1; i <= 12; i++)
+          DetalleVenta(
+            productoId: i,
+            descripcion: 'Producto $i',
+            cantidad: 1,
+            precioUnitario: 5000,
+            totalLinea: 5000,
+          ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      _envolver(
+        carrito,
+        Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => mostrarFactura(context, venta, carrito),
+              child: const Text('abrir factura'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('abrir factura'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Venta registrada'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    final fecha = tester.getRect(find.text('11/11/2026 6:57 p. m.'));
+    final precio = tester.getRect(find.text(r'$ 5.000').first);
+    final nuevaVenta = tester.getRect(find.text('Nueva venta'));
+
+    expect(fecha.right, closeTo(316, 1));
+    expect(fecha.height, lessThan(24));
+    expect(precio.right, closeTo(316, 1));
+    expect(nuevaVenta.height, lessThan(24));
+
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -800),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nueva venta'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

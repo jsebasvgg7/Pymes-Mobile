@@ -3,7 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pymes_erp_mobile/app/navegacion/destinos.dart';
 import 'package:pymes_erp_mobile/app/theme.dart';
 import 'package:pymes_erp_mobile/core/productos/producto_inventario.dart';
+import 'package:pymes_erp_mobile/features/auth/data/auth_repository.dart';
+import 'package:pymes_erp_mobile/features/auth/data/models/usuario.dart';
+import 'package:pymes_erp_mobile/features/auth/presentation/auth_controller.dart';
+import 'package:pymes_erp_mobile/features/pos/data/models/ajustes_venta.dart';
+import 'package:pymes_erp_mobile/features/pos/data/models/categoria_pos.dart';
+import 'package:pymes_erp_mobile/features/pos/data/models/cliente_pos.dart';
+import 'package:pymes_erp_mobile/features/pos/data/models/estado_caja.dart';
+import 'package:pymes_erp_mobile/features/pos/data/models/forma_pago.dart';
+import 'package:pymes_erp_mobile/features/pos/data/models/venta_creada.dart';
+import 'package:pymes_erp_mobile/features/pos/data/pos_repository.dart';
+import 'package:pymes_erp_mobile/features/pos/presentation/registro_ventas_page.dart';
 import 'package:pymes_erp_mobile/features/pos/presentation/widgets/fila_producto_pos.dart';
+import 'package:provider/provider.dart';
 
 ProductoInventario _producto(
   int id,
@@ -33,6 +45,89 @@ Widget _envolver(Widget hijo) {
     theme: construirTema(),
     home: Scaffold(body: hijo),
   );
+}
+
+class _AuthFalso implements AuthRepository {
+  static const Usuario _usuario = Usuario(
+    id: 1,
+    empresaId: 7,
+    username: 'cajero',
+    email: 'cajero@test.com',
+  );
+
+  @override
+  Future<Usuario> login({
+    required String email,
+    required String password,
+  }) async => _usuario;
+
+  @override
+  Future<Usuario> registrar({
+    required String empresaNombre,
+    required String username,
+    required String email,
+    required String password,
+    required String codigoRegistro,
+  }) async => _usuario;
+
+  @override
+  Future<Usuario?> restaurarSesion() async => _usuario;
+
+  @override
+  Future<void> cerrarSesion() async {}
+
+  @override
+  Future<CredencialesRecordadas?> leerRecordadas() async => null;
+
+  @override
+  Future<void> recordar(String correo, String clave) async {}
+
+  @override
+  Future<void> olvidarRecordadas() async {}
+}
+
+class _RepoFalso implements PosRepository {
+  @override
+  Future<List<ProductoInventario>> productos(int empresaId) async => [
+    _producto(1, 'Arroz'),
+  ];
+
+  @override
+  Future<List<CategoriaPos>> categorias(int empresaId) async => const [
+    CategoriaPos(id: 1, nombre: 'Abarrotes'),
+  ];
+
+  @override
+  Future<List<FormaPago>> formasDePago(int empresaId) async => const [
+    FormaPago(id: 1, nombre: 'Efectivo', tipo: TipoFormaPago.efectivo),
+  ];
+
+  @override
+  Future<List<ClientePos>> clientes(int empresaId) async => const [];
+
+  @override
+  Future<AjustesVenta> ajustes(int empresaId) async => const AjustesVenta();
+
+  @override
+  Future<List<EstadoCaja>> estadoDeCajas(int empresaId) async => const [
+    EstadoCaja(cajaId: 1, cajaNombre: 'Principal', abierta: true),
+  ];
+
+  @override
+  Future<String> nombreEmpresa(int empresaId) async => 'SuperMarket V';
+
+  @override
+  Future<VentaCreada> crearVenta({
+    required int empresaId,
+    required int formaPagoId,
+    required List<LineaVenta> lineas,
+    int? clienteId,
+    num descuento = 0,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<VentaCreada> anularVenta(int facturaId) async =>
+      throw UnimplementedError();
 }
 
 void main() {
@@ -121,4 +216,47 @@ void main() {
 
     expect(nombre.left, lessThan(60));
   });
+
+  testWidgets(
+    'tocar un producto actualiza el carrito sin salir de la pantalla',
+    (tester) async {
+      final auth = AuthController(repositorio: _AuthFalso());
+      await auth.restaurar();
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AuthController>.value(value: auth),
+            Provider<PosRepository>.value(value: _RepoFalso()),
+          ],
+          child: MaterialApp(
+            theme: construirTema(),
+            home: const Scaffold(body: RegistroVentasPage()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.bySemanticsLabel(RegExp('Carrito con 0 productos')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Arroz'));
+      await tester.pump();
+
+      expect(
+        find.bySemanticsLabel(RegExp('Carrito con 1 productos')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Arroz'));
+      await tester.pump();
+
+      expect(
+        find.bySemanticsLabel(RegExp('Carrito con 0 productos')),
+        findsOneWidget,
+      );
+    },
+  );
 }

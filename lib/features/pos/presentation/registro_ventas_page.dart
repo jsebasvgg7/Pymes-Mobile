@@ -58,7 +58,11 @@ class _VistaRegistroVentasState extends State<_VistaRegistroVentas> {
           alReintentar: () => controlador.cargar(),
         );
       case EstadoPos.listo:
-        return _Contenido(controlador: controlador, campo: _campo);
+        return ListenableBuilder(
+          listenable: controlador.carrito,
+          builder: (context, _) =>
+              _Contenido(controlador: controlador, campo: _campo),
+        );
     }
   }
 }
@@ -196,7 +200,14 @@ class _Contenido extends StatelessWidget {
                       seleccionado: carrito.estaSeleccionado(
                         producto.productoId,
                       ),
-                      alSeleccionar: () => carrito.agregar(producto),
+                      alSeleccionar: () {
+                        final id = producto.productoId;
+                        if (carrito.estaSeleccionado(id)) {
+                          carrito.quitar(id);
+                        } else {
+                          carrito.agregar(producto);
+                        }
+                      },
                     );
                   },
                 ),
