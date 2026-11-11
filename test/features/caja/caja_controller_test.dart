@@ -6,6 +6,7 @@ import 'package:pymes_erp_mobile/core/network/api_exception.dart';
 import 'package:pymes_erp_mobile/core/storage/session_storage.dart';
 import 'package:pymes_erp_mobile/features/caja/data/caja_repository.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/apertura_caja.dart';
+import 'package:pymes_erp_mobile/features/caja/data/models/cierre_caja_resultado.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/estado_caja.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/resumen_caja.dart';
 import 'package:pymes_erp_mobile/features/caja/presentation/caja_controller.dart';
@@ -15,18 +16,31 @@ class _RepoFalso extends CajaRepository {
     Future<List<ResumenCaja>> Function(int empresaId)? resumenesAccion,
     Future<List<EstadoCaja>> Function(int empresaId)? estadosAccion,
     Future<PaginaCierresCaja> Function(int cajaId)? cierresAccion,
+    Future<AperturaCaja> Function(int cajaId, num monto)? abrirAccion,
+    Future<CierreCajaResultado> Function(int cajaId, num contado)? cerrarAccion,
+    Future<AperturaCaja> Function(int cajaId)? reabrirAccion,
   }) : resumenesAccion = resumenesAccion ?? ((_) async => const []),
        estadosAccion = estadosAccion ?? ((_) async => const []),
        cierresAccion =
            cierresAccion ?? ((_) async => const PaginaCierresCaja(items: [])),
+       abrirAccion = abrirAccion ?? ((_, __) async => _aperturaAbierto()),
+       cerrarAccion =
+           cerrarAccion ?? ((_, __) async => _resultadoCierreCerrado()),
+       reabrirAccion = reabrirAccion ?? ((_) async => _aperturaAbierto()),
        super(cliente: ApiClient(almacen: SessionStorage()));
 
   Future<List<ResumenCaja>> Function(int empresaId) resumenesAccion;
   Future<List<EstadoCaja>> Function(int empresaId) estadosAccion;
   Future<PaginaCierresCaja> Function(int cajaId) cierresAccion;
+  Future<AperturaCaja> Function(int cajaId, num monto) abrirAccion;
+  Future<CierreCajaResultado> Function(int cajaId, num contado) cerrarAccion;
+  Future<AperturaCaja> Function(int cajaId) reabrirAccion;
   int llamadasResumenes = 0;
   int llamadasEstados = 0;
   int llamadasCierres = 0;
+  int llamadasAbrir = 0;
+  int llamadasCerrar = 0;
+  int llamadasReabrir = 0;
   int empresaPedida = 0;
 
   @override
@@ -50,6 +64,24 @@ class _RepoFalso extends CajaRepository {
   }) {
     llamadasCierres++;
     return cierresAccion(cajaId);
+  }
+
+  @override
+  Future<AperturaCaja> abrir(int cajaId, num monto) {
+    llamadasAbrir++;
+    return abrirAccion(cajaId, monto);
+  }
+
+  @override
+  Future<CierreCajaResultado> cerrar(int cajaId, num contado) {
+    llamadasCerrar++;
+    return cerrarAccion(cajaId, contado);
+  }
+
+  @override
+  Future<AperturaCaja> reabrir(int cajaId) {
+    llamadasReabrir++;
+    return reabrirAccion(cajaId);
   }
 }
 
@@ -110,10 +142,47 @@ AperturaCaja _cierre(int id, {num? diferencia = -15500, DateTime? fecha}) {
   );
 }
 
-Future<CajaController> _construir(_RepoFalso repo) async {
-  final controlador = CajaController(repositorio: repo, empresaId: 7);
+Future<CajaController> _construir(
+  _RepoFalso repo, {
+  DateTime Function()? ahora,
+}) async {
+  final controlador = CajaController(
+    repositorio: repo,
+    empresaId: 7,
+    ahora: ahora,
+  );
   await controlador.cargar();
   return controlador;
+}
+
+AperturaCaja _aperturaAbierto() {
+  return AperturaCaja(
+    id: 1,
+    cajaId: 1,
+    cajaNombre: 'Caja Principal',
+    estado: EstadoAperturaCaja.abierta,
+    usuarioAperturaId: null,
+    usuarioAperturaNombre: null,
+    fechaApertura: DateTime(2026, 11, 11, 10, 0),
+    efectivoInicial: 100000,
+    usuarioCierreId: null,
+    usuarioCierreNombre: null,
+    fechaCierre: null,
+    efectivoEsperado: null,
+    efectivoContado: null,
+    diferencia: null,
+    tipoCierre: null,
+    resultado: null,
+    requiereCierre: false,
+  );
+}
+
+CierreCajaResultado _resultadoCierreCerrado() {
+  return CierreCajaResultado(
+    apertura: _cierre(733),
+    ingresosOtrosMedios: 88990,
+    egresosOtrosMedios: 120400,
+  );
 }
 
 void main() {
@@ -336,5 +405,205 @@ void main() {
     c.dispose();
     espera.complete([_resumen(1, 'Caja Principal')]);
     await expectLater(carga, completes);
+  });
+
+  test('abrir caja registra el monto y queda abierta', () async {
+    var estado1 = _estado(1, 'Caja Principal', abierta: false);
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [estado1],
+      cierresAccion: (_) async => const PaginaCierresCaja(items: []),
+      abrirAccion: (_, monto) async {
+        expect(monto, 150000);
+        return _aperturaAbierto();
+      },
+    );
+    final c = await _construir(repo);
+
+    final ok = await c.abrirCaja(150000);
+
+    expect(ok, isTrue);
+    expect(repo.llamadasAbrir, 1);
+    expect(c.errorAccion, isNull);
+    expect(c.codigoErrorAccion, isNull);
+    estado1 = _estado(1, 'Caja Principal', abierta: true);
+    await c.refrescar();
+    expect(c.abierta, isTrue);
+  });
+
+  test('abrir caja ya abierta no llama al repositorio', () async {
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [_estado(1, 'Caja Principal')],
+    );
+    final c = await _construir(repo);
+
+    final ok = await c.abrirCaja(100000);
+
+    expect(ok, isFalse);
+    expect(repo.llamadasAbrir, 0);
+  });
+
+  test('abrir caja con 409 reporta error y refresca', () async {
+    var estado1 = _estado(1, 'Caja Principal', abierta: false);
+    int resumenes = 0;
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async {
+        resumenes++;
+        return [_resumen(1, 'Caja Principal')];
+      },
+      estadosAccion: (_) async => [estado1],
+      abrirAccion: (_, __) async =>
+          throw const ApiException('Ya está abierta', status: 409),
+    );
+    final c = await _construir(repo);
+
+    final ok = await c.abrirCaja(100000);
+
+    expect(ok, isFalse);
+    expect(c.errorAccion, 'Ya está abierta');
+    expect(c.codigoErrorAccion, 409);
+    expect(resumenes, 2);
+  });
+
+  test('cerrar caja devuelve el resultado y queda cerrada', () async {
+    var estado1 = _estado(1, 'Caja Principal');
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [estado1],
+      cierresAccion: (_) async => PaginaCierresCaja(items: [_cierre(733)]),
+      cerrarAccion: (_, contado) async {
+        expect(contado, 484500);
+        return _resultadoCierreCerrado();
+      },
+    );
+    final c = await _construir(repo);
+
+    final resultado = await c.cerrarCaja(484500);
+
+    expect(resultado, isNotNull);
+    expect(repo.llamadasCerrar, 1);
+    expect(c.errorAccion, isNull);
+    estado1 = _estado(1, 'Caja Principal', abierta: false);
+    await c.refrescar();
+    expect(c.abierta, isFalse);
+    expect(c.ultimoCierre!.id, 733);
+    expect(resultado!.apertura.diferencia, -15500);
+  });
+
+  test('cerrar caja sin abierta no llama al repositorio', () async {
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [
+        _estado(1, 'Caja Principal', abierta: false),
+      ],
+    );
+    final c = await _construir(repo);
+
+    final resultado = await c.cerrarCaja(100000);
+
+    expect(resultado, isNull);
+    expect(repo.llamadasCerrar, 0);
+  });
+
+  test('cerrar caja con 409 no devuelve resultado y refresca', () async {
+    var estado1 = _estado(1, 'Caja Principal');
+    int resumenes = 0;
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async {
+        resumenes++;
+        return [_resumen(1, 'Caja Principal')];
+      },
+      estadosAccion: (_) async => [estado1],
+      cerrarAccion: (_, __) async =>
+          throw const ApiException('Ya está cerrada', status: 409),
+    );
+    final c = await _construir(repo);
+
+    final resultado = await c.cerrarCaja(100000);
+
+    expect(resultado, isNull);
+    expect(c.errorAccion, 'Ya está cerrada');
+    expect(c.codigoErrorAccion, 409);
+    expect(resumenes, 2);
+  });
+
+  test('reabrir cierre del mismo dia queda abierta', () async {
+    var estado1 = _estado(1, 'Caja Principal', abierta: false);
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [estado1],
+      cierresAccion: (_) async => PaginaCierresCaja(items: [_cierre(733)]),
+      reabrirAccion: (_) async => _aperturaAbierto(),
+    );
+    final c = await _construir(
+      repo,
+      ahora: () => DateTime(2026, 11, 11, 16, 0),
+    );
+
+    final ok = await c.reabrirCaja();
+
+    expect(ok, isTrue);
+    expect(repo.llamadasReabrir, 1);
+    expect(c.errorAccion, isNull);
+    estado1 = _estado(1, 'Caja Principal', abierta: true);
+    await c.refrescar();
+    expect(c.abierta, isTrue);
+  });
+
+  test('reabrir caja ya abierta no llama al repositorio', () async {
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [_estado(1, 'Caja Principal')],
+    );
+    final c = await _construir(repo);
+
+    final ok = await c.reabrirCaja();
+
+    expect(ok, isFalse);
+    expect(repo.llamadasReabrir, 0);
+  });
+
+  test('reabrir cierre de otro dia no se permite', () async {
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [
+        _estado(1, 'Caja Principal', abierta: false),
+      ],
+      cierresAccion: (_) async => PaginaCierresCaja(items: [_cierre(733)]),
+    );
+    final c = await _construir(
+      repo,
+      ahora: () => DateTime(2026, 11, 12, 10, 0),
+    );
+
+    final ok = await c.reabrirCaja();
+
+    expect(ok, isFalse);
+    expect(c.errorAccion, isNotNull);
+    expect(repo.llamadasReabrir, 0);
+  });
+
+  test('puedeReabrir es false sin cierre y true mismo dia', () async {
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [
+        _estado(1, 'Caja Principal', abierta: false),
+      ],
+      cierresAccion: (_) async => PaginaCierresCaja(items: [_cierre(733)]),
+    );
+    final c = await _construir(
+      repo,
+      ahora: () => DateTime(2026, 11, 11, 10, 0),
+    );
+
+    expect(c.puedeReabrir, isTrue);
+
+    final abierto = CajaController(
+      repositorio: repo,
+      empresaId: 7,
+      ahora: () => DateTime(2026, 11, 11, 10, 0),
+    );
+    expect(abierto.puedeReabrir, isFalse);
   });
 }

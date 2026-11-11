@@ -11,6 +11,7 @@ import 'package:pymes_erp_mobile/features/auth/data/models/usuario.dart';
 import 'package:pymes_erp_mobile/features/auth/presentation/auth_controller.dart';
 import 'package:pymes_erp_mobile/features/caja/data/caja_repository.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/apertura_caja.dart';
+import 'package:pymes_erp_mobile/features/caja/data/models/cierre_caja_resultado.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/estado_caja.dart';
 import 'package:pymes_erp_mobile/features/caja/data/models/resumen_caja.dart';
 import 'package:pymes_erp_mobile/features/caja/presentation/caja_page.dart';
@@ -38,15 +39,28 @@ class _RepoFalso extends CajaRepository {
     Future<List<ResumenCaja>> Function(int empresaId)? resumenesAccion,
     Future<List<EstadoCaja>> Function(int empresaId)? estadosAccion,
     Future<PaginaCierresCaja> Function(int cajaId)? cierresAccion,
+    Future<AperturaCaja> Function(int cajaId, num monto)? abrirAccion,
+    Future<CierreCajaResultado> Function(int cajaId, num contado)? cerrarAccion,
+    Future<AperturaCaja> Function(int cajaId)? reabrirAccion,
   }) : resumenesAccion = resumenesAccion ?? ((_) async => const []),
        estadosAccion = estadosAccion ?? ((_) async => const []),
        cierresAccion =
            cierresAccion ?? ((_) async => const PaginaCierresCaja(items: [])),
+       abrirAccion = abrirAccion ?? ((_, __) async => _aperturaAbierto()),
+       cerrarAccion =
+           cerrarAccion ?? ((_, __) async => _resultadoCierreCerrado()),
+       reabrirAccion = reabrirAccion ?? ((_) async => _aperturaAbierto()),
        super(cliente: ApiClient(almacen: SessionStorage()));
 
   Future<List<ResumenCaja>> Function(int empresaId) resumenesAccion;
   Future<List<EstadoCaja>> Function(int empresaId) estadosAccion;
   Future<PaginaCierresCaja> Function(int cajaId) cierresAccion;
+  Future<AperturaCaja> Function(int cajaId, num monto) abrirAccion;
+  Future<CierreCajaResultado> Function(int cajaId, num contado) cerrarAccion;
+  Future<AperturaCaja> Function(int cajaId) reabrirAccion;
+  int llamadasAbrir = 0;
+  int llamadasCerrar = 0;
+  int llamadasReabrir = 0;
 
   @override
   Future<List<ResumenCaja>> resumenes(int empresaId) {
@@ -65,6 +79,24 @@ class _RepoFalso extends CajaRepository {
     int tamano = 1,
   }) {
     return cierresAccion(cajaId);
+  }
+
+  @override
+  Future<AperturaCaja> abrir(int cajaId, num monto) {
+    llamadasAbrir++;
+    return abrirAccion(cajaId, monto);
+  }
+
+  @override
+  Future<CierreCajaResultado> cerrar(int cajaId, num contado) {
+    llamadasCerrar++;
+    return cerrarAccion(cajaId, contado);
+  }
+
+  @override
+  Future<AperturaCaja> reabrir(int cajaId) {
+    llamadasReabrir++;
+    return reabrirAccion(cajaId);
   }
 }
 
@@ -125,7 +157,37 @@ AperturaCaja _cierre() {
   );
 }
 
-Widget _envolver(_RepoFalso repo) {
+AperturaCaja _aperturaAbierto() {
+  return AperturaCaja(
+    id: 1,
+    cajaId: 1,
+    cajaNombre: 'Caja Principal',
+    estado: EstadoAperturaCaja.abierta,
+    usuarioAperturaId: null,
+    usuarioAperturaNombre: null,
+    fechaApertura: DateTime(2026, 11, 11, 10, 0),
+    efectivoInicial: 100000,
+    usuarioCierreId: null,
+    usuarioCierreNombre: null,
+    fechaCierre: null,
+    efectivoEsperado: null,
+    efectivoContado: null,
+    diferencia: null,
+    tipoCierre: null,
+    resultado: null,
+    requiereCierre: false,
+  );
+}
+
+CierreCajaResultado _resultadoCierreCerrado() {
+  return CierreCajaResultado(
+    apertura: _cierre(),
+    ingresosOtrosMedios: 88990,
+    egresosOtrosMedios: 120400,
+  );
+}
+
+Widget _envolver(_RepoFalso repo, {DateTime Function()? ahora}) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider<AuthController>.value(value: _AuthFalso()),
@@ -133,13 +195,19 @@ Widget _envolver(_RepoFalso repo) {
     ],
     child: MaterialApp(
       theme: construirTema(),
-      home: const Scaffold(body: CajaPage()),
+      home: Scaffold(body: CajaPage(ahora: ahora)),
     ),
   );
 }
 
-Future<void> _cargar(WidgetTester tester, _RepoFalso repo) async {
-  await tester.pumpWidget(_envolver(repo));
+Future<void> _cargar(
+  WidgetTester tester,
+  _RepoFalso repo, {
+  DateTime Function()? ahora,
+}) async {
+  tester.view.physicalSize = const Size(800, 2000);
+  tester.view.devicePixelRatio = 1.0;
+  await tester.pumpWidget(_envolver(repo, ahora: ahora));
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 100));
 }

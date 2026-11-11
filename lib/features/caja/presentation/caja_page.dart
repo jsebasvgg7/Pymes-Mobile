@@ -8,13 +8,17 @@ import '../../../core/widgets/estado_error.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/caja_repository.dart';
 import 'caja_controller.dart';
+import 'hojas_caja.dart';
+import 'widgets/acciones_caja.dart';
 import 'widgets/aviso_caja.dart';
 import 'widgets/pildora_estado_caja.dart';
 import 'widgets/selector_cajas.dart';
 import 'widgets/tarjeta_resumen_caja.dart';
 
 class CajaPage extends StatelessWidget {
-  const CajaPage({super.key});
+  const CajaPage({super.key, this.ahora});
+
+  final DateTime Function()? ahora;
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +28,17 @@ class CajaPage extends StatelessWidget {
       create: (contexto) => CajaController(
         repositorio: contexto.read<CajaRepository>(),
         empresaId: usuario.empresaId,
+        ahora: ahora,
       )..cargar(),
-      child: const _VistaCaja(),
+      child: _VistaCaja(ahora: ahora),
     );
   }
 }
 
 class _VistaCaja extends StatelessWidget {
-  const _VistaCaja();
+  const _VistaCaja({this.ahora});
+
+  final DateTime Function()? ahora;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +120,15 @@ class _Contenido extends StatelessWidget {
             caja: caja,
             ultimoCierre: controlador.ultimoCierre,
           ),
+          const SizedBox(height: 16),
+          AccionesCaja(
+            abierta: controlador.abierta,
+            puedeReabrir: controlador.puedeReabrir,
+            ocupado: controlador.procesandoAccion,
+            alAbrir: () => _abrirCaja(context, controlador, caja),
+            alCerrar: () => _cerrarCaja(context, controlador, caja),
+            alReabrir: () => _reabrirCaja(context, controlador),
+          ),
           if (controlador.cierrePendiente) ...[
             const SizedBox(height: 12),
             const AvisoCaja(
@@ -136,6 +152,55 @@ class _Contenido extends StatelessWidget {
           ],
         ],
       ],
+    );
+  }
+
+  Future<void> _abrirCaja(
+    BuildContext contexto,
+    CajaController controlador,
+    CajaVista caja,
+  ) async {
+    if (controlador.abierta) return;
+    final mensajero = ScaffoldMessenger.of(contexto);
+    final abrio = await mostrarAbrirCaja(contexto, controlador, caja);
+    if (!contexto.mounted) return;
+    if (!abrio && controlador.codigoErrorAccion != 409) {
+      mensajero.showSnackBar(
+        SnackBar(
+          content: Text(controlador.errorAccion ?? 'No se pudo abrir la caja.'),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  Future<void> _cerrarCaja(
+    BuildContext contexto,
+    CajaController controlador,
+    CajaVista caja,
+  ) async {
+    if (!controlador.abierta) return;
+    final resultado = await mostrarCerrarCaja(contexto, controlador, caja);
+    if (resultado == null || !contexto.mounted) return;
+    await mostrarResultadoCierre(contexto, controlador, resultado);
+  }
+
+  Future<void> _reabrirCaja(
+    BuildContext contexto,
+    CajaController controlador,
+  ) async {
+    final mensajero = ScaffoldMessenger.of(contexto);
+    final exito = await controlador.reabrirCaja();
+    if (!contexto.mounted) return;
+    mensajero.showSnackBar(
+      SnackBar(
+        content: Text(
+          exito
+              ? 'Caja reabierta'
+              : controlador.errorAccion ?? 'No se pudo reabrir.',
+        ),
+        duration: const Duration(seconds: 4),
+      ),
     );
   }
 }
