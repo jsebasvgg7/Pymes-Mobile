@@ -286,8 +286,15 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
   num? monto;
   bool enviando = false;
   BuildContext? contextoHojaActual;
+  StateSetter? actualizarHoja;
 
   controladorMonto = TextEditingController();
+
+  void refrescarHoja() {
+    final contexto = contextoHojaActual;
+    if (contexto == null || !contexto.mounted) return;
+    actualizarHoja?.call(() {});
+  }
 
   void cerrarHoja(CierreCajaResultado? valor) {
     final contexto = contextoHojaActual;
@@ -299,6 +306,7 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
     final valor = montoDesdeTexto(controladorMonto.text);
     if (valor == null || enviando) return;
     enviando = true;
+    refrescarHoja();
 
     final resultado = await controlador.cerrarCaja(valor);
 
@@ -308,6 +316,7 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
     }
 
     enviando = false;
+    refrescarHoja();
     final esConflicto = controlador.codigoErrorAccion == 409;
     final mensaje =
         controlador.errorAccion ??
@@ -341,6 +350,7 @@ Future<CierreCajaResultado?> mostrarCerrarCaja(
       contextoHojaActual = contextoHoja;
       return StatefulBuilder(
         builder: (contexto, estadoHoja) {
+          actualizarHoja = estadoHoja;
           return Padding(
             padding:
                 MediaQuery.of(contexto).viewInsets +

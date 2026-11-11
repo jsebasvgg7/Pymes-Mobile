@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -246,6 +248,47 @@ Widget _envolverAnidado(_RepoFalso repo) {
   );
 }
 
+void _agregarPruebaSpinnerCierre() {
+  testWidgets('mientras cierra la caja la hoja muestra progreso y bloquea cancelar', (
+    tester,
+  ) async {
+    final pendiente = Completer<CierreCajaResultado>();
+    final repo = _RepoFalso(
+      resumenesAccion: (_) async => [_resumen(1, 'Caja Principal')],
+      estadosAccion: (_) async => [_estado(1, 'Caja Principal')],
+      cerrarAccion: (_, _) => pendiente.future,
+    );
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_envolverAnidado(repo));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.tap(find.text('Cerrar caja'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.enterText(find.byType(TextField), '100000');
+    await tester.pump();
+    await tester.tap(find.text('Confirmar cierre'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(repo.llamadasCerrar, 1);
+    expect(find.text('Confirmar cierre'), findsNothing);
+    final cancelar = tester.widget<OutlinedButton>(
+      find.widgetWithText(OutlinedButton, 'Cancelar'),
+    );
+    expect(cancelar.onPressed, isNull);
+
+    pendiente.complete(_resultadoCierreCerrado());
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+    expect(tester.takeException(), isNull);
+  });
+}
+
 void _agregarPruebaCierreAnidado() {
   testWidgets(
     'cerrar la caja cierra la hoja y conserva la pagina dentro de un navegador anidado',
@@ -387,4 +430,5 @@ void main() {
   });
 
   _agregarPruebaCierreAnidado();
+  _agregarPruebaSpinnerCierre();
 }

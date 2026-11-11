@@ -384,7 +384,7 @@ class CajaController extends ChangeNotifier {
       );
       _notificar();
     } catch (_) {
-      // Ignorar errores al cargar formas de pago
+      return;
     }
   }
 
