@@ -1,11 +1,7 @@
 import '../../../../core/format/numero.dart';
 
 class CategoriaPos {
-  const CategoriaPos({
-    required this.id,
-    required this.nombre,
-    this.icono,
-  });
+  const CategoriaPos({required this.id, required this.nombre, this.icono});
 
   final int id;
   final String nombre;

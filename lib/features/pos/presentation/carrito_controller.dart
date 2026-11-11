@@ -8,10 +8,7 @@ import '../data/models/cliente_pos.dart';
 import '../data/models/forma_pago.dart';
 
 class LineaCarrito {
-  const LineaCarrito({
-    required this.producto,
-    required this.cantidad,
-  });
+  const LineaCarrito({required this.producto, required this.cantidad});
 
   final ProductoInventario producto;
   final num cantidad;
@@ -20,10 +17,8 @@ class LineaCarrito {
     (cantidad * producto.precioVenta).toDouble(),
   );
 
-  LineaCarrito copyWith({num? cantidad}) => LineaCarrito(
-    producto: producto,
-    cantidad: cantidad ?? this.cantidad,
-  );
+  LineaCarrito copyWith({num? cantidad}) =>
+      LineaCarrito(producto: producto, cantidad: cantidad ?? this.cantidad);
 }
 
 enum EstadoVenta { vacio, listo, error }
@@ -159,7 +154,10 @@ class CarritoController extends ChangeNotifier {
       if (cantidad <= 0) return false;
       _lineas.add(LineaCarrito(producto: producto, cantidad: cantidad));
     } else {
-      final cantidad = math.min(existente.cantidad + paso, producto.cantidadActual);
+      final cantidad = math.min(
+        existente.cantidad + paso,
+        producto.cantidadActual,
+      );
       _quitar(producto.productoId);
       _lineas.add(LineaCarrito(producto: producto, cantidad: cantidad));
     }
@@ -185,9 +183,7 @@ class CarritoController extends ChangeNotifier {
     final linea = _buscar(productoId);
     if (linea == null) return false;
     final tope = linea.producto.cantidadActual;
-    final nueva = redondearCantidad(
-      cantidad.clamp(0, tope).toDouble(),
-    );
+    final nueva = redondearCantidad(cantidad.clamp(0, tope).toDouble());
     if (nueva == linea.cantidad) return false;
     if (nueva <= 0) {
       _quitar(productoId);
@@ -201,10 +197,7 @@ class CarritoController extends ChangeNotifier {
   bool subirCantidad(int productoId) {
     final linea = _buscar(productoId);
     if (linea == null) return false;
-    return cambiarCantidad(
-      productoId,
-      linea.cantidad + pasoDe(linea.producto),
-    );
+    return cambiarCantidad(productoId, linea.cantidad + pasoDe(linea.producto));
   }
 
   bool bajarCantidad(int productoId) {

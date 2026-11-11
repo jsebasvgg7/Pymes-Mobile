@@ -41,67 +41,67 @@ class FilaProductoPos extends StatelessWidget {
         onTap: agotado ? null : alSeleccionar,
         child: Opacity(
           opacity: agotado ? 0.5 : 1,
-          child: Row(
-            children: [
-              _CirculoSeleccion(
-                activo: seleccionado,
-                habilitado: !agotado,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      producto.nombre,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 64),
+            child: Row(
+              children: [
+                _CirculoSeleccion(activo: seleccionado, habilitado: !agotado),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        producto.nombre,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            'Stock: ${_cantidad(producto)} ${abreviarUnidad(producto.unidadMedida, producto.cantidadActual)}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: textoSecundario,
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Stock: ${_cantidad(producto)} ${abreviarUnidad(producto.unidadMedida, producto.cantidadActual)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: textoSecundario,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Flexible(
-                          child: Text(
-                            'Estado: $etiquetaEstado',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: colorEstado,
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(
+                              'Estado: $etiquetaEstado',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: colorEstado,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                formatearMoneda(producto.precioVenta),
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                const SizedBox(width: 8),
+                Text(
+                  formatearMoneda(producto.precioVenta),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -124,8 +124,8 @@ class _CirculoSeleccion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 24,
-      height: 24,
+      width: 26,
+      height: 26,
       child: DecoratedBox(
         decoration: BoxDecoration(
           shape: BoxShape.circle,

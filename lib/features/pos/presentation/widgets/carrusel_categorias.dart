@@ -22,28 +22,30 @@ class CarruselCategorias extends StatelessWidget {
     if (categorias.isEmpty) return const SizedBox.shrink();
     return SizedBox(
       height: 92,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: categorias.length + 1,
-        separatorBuilder: (_, _) => const SizedBox(width: 13),
-        itemBuilder: (context, indice) {
-          if (indice == 0) {
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: categorias.length + 1,
+          separatorBuilder: (_, _) => const SizedBox(width: 13),
+          itemBuilder: (context, indice) {
+            if (indice == 0) {
+              return _BotonCategoria(
+                nombre: 'Todos',
+                icono: HugeIcons.strokeRoundedGrid,
+                activo: categoriaElegida == null,
+                alTocar: () => alElegir(null),
+              );
+            }
+            final categoria = categorias[indice - 1];
             return _BotonCategoria(
-              nombre: 'Todos',
-              icono: HugeIcons.strokeRoundedGrid,
-              activo: categoriaElegida == null,
-              alTocar: () => alElegir(null),
+              nombre: categoria.nombre,
+              icono: iconoCategoria(categoria.nombre, clave: categoria.icono),
+              activo: categoriaElegida == categoria.id,
+              alTocar: () => alElegir(categoria.id),
             );
-          }
-          final categoria = categorias[indice - 1];
-          return _BotonCategoria(
-            nombre: categoria.nombre,
-            icono: iconoCategoria(categoria.nombre, clave: categoria.icono),
-            activo: categoriaElegida == categoria.id,
-            alTocar: () => alElegir(categoria.id),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -70,40 +72,36 @@ class _BotonCategoria extends StatelessWidget {
       label: 'Categoría $nombre',
       child: GestureDetector(
         onTap: alTocar,
-      child: SizedBox(
-        width: 60,
-        child: Column(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                color: superficie,
-                shape: BoxShape.circle,
+        child: SizedBox(
+          width: 60,
+          child: Column(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: tintaPrincipal.withValues(alpha: 0.07),
+                  shape: BoxShape.circle,
+                ),
+                child: HugeIcon(icon: icono, color: tintaPrincipal, size: 24),
               ),
-              child: HugeIcon(
-                icon: icono,
-                color: tintaPrincipal,
-                size: 24,
+              const SizedBox(height: 6),
+              Text(
+                nombre,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  height: 1.2,
+                  fontWeight: activo ? FontWeight.w600 : FontWeight.w400,
+                  color: activo ? tintaPrincipal : textoSecundario,
+                ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              nombre,
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 11,
-                height: 1.2,
-                fontWeight: activo ? FontWeight.w600 : FontWeight.w400,
-                color: activo ? tintaPrincipal : textoSecundario,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

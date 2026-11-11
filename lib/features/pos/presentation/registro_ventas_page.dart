@@ -157,7 +157,7 @@ class _Contenido extends StatelessWidget {
           categoriaElegida: controlador.categoriaElegida,
           alElegir: controlador.elegirCategoria,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         if (controlador.sinCajaAbierta) const _AvisoCajaCerrada(),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -187,7 +187,7 @@ class _Contenido extends StatelessWidget {
                     24 + MediaQuery.paddingOf(context).bottom,
                   ),
                   itemCount: productos.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) => const SizedBox(height: 20),
                   itemBuilder: (context, indice) {
                     final producto = productos[indice];
                     return FilaProductoPos(
@@ -294,7 +294,11 @@ class _AvisoCajaCerrada extends StatelessWidget {
           Expanded(
             child: Text(
               'La caja está cerrada. Ábrela para registrar ventas.',
-              style: TextStyle(fontSize: 13, height: 1.3, color: textoSecundario),
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.3,
+                color: textoSecundario,
+              ),
             ),
           ),
         ],

@@ -45,6 +45,27 @@ void main() {
     }
   });
 
+  testWidgets('el carrusel deja 20 dp de margen a cada lado', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: construirTema(),
+        home: Scaffold(
+          body: CarruselCategorias(
+            categorias: _categorias,
+            categoriaElegida: null,
+            alElegir: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    final lista = tester.getRect(find.byType(ListView));
+    final ancho = tester.view.physicalSize.width / tester.view.devicePixelRatio;
+
+    expect(lista.left, 20);
+    expect(lista.right, ancho - 20);
+  });
+
   testWidgets('todos los círculos son grises, incluso el elegido', (
     tester,
   ) async {
@@ -70,8 +91,7 @@ void main() {
 
     expect(fondos, isNotEmpty);
     for (final color in fondos) {
-      if (color == tintaPrincipal) continue;
-      expect(color, superficie);
+      expect(color, tintaPrincipal.withValues(alpha: 0.07));
     }
   });
 }

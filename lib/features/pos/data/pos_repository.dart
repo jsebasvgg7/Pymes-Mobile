@@ -58,18 +58,14 @@ class PosRepository {
     final paginas = await _paginas(
       (page) => '/api/formas-pago/listar-por-empresa/$empresaId',
     );
-    return paginas
-        .expand((json) => FormaPago.listaDesdePagina(json))
-        .toList();
+    return paginas.expand((json) => FormaPago.listaDesdePagina(json)).toList();
   }
 
   Future<List<ClientePos>> clientes(int empresaId) async {
     final paginas = await _paginas(
       (page) => '/api/clientes/listar-por-empresa/$empresaId',
     );
-    return paginas
-        .expand((json) => ClientePos.listaDesdePagina(json))
-        .toList();
+    return paginas.expand((json) => ClientePos.listaDesdePagina(json)).toList();
   }
 
   Future<List<dynamic>> _paginas(String Function(int page) ruta) async {
@@ -81,7 +77,11 @@ class PosRepository {
     final total = _totalPaginas(respuesta);
     if (total <= 1) return [respuesta];
     final resto = <dynamic>[];
-    for (var siguiente = primera + 1; siguiente < total && siguiente < _maxPaginas; siguiente++) {
+    for (
+      var siguiente = primera + 1;
+      siguiente < total && siguiente < _maxPaginas;
+      siguiente++
+    ) {
       resto.add(
         await _cliente.get(
           ruta(siguiente),

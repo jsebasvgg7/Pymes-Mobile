@@ -44,9 +44,8 @@ const FormaPago _credito = FormaPago(
 const ClientePos _cliente = ClientePos(id: 8, nombre: 'Don Carlos');
 
 CarritoController _controlador({AjustesVenta? ajustes}) {
-  return CarritoController(
-    ajustes: ajustes ?? const AjustesVenta(),
-  )..cargarFormasDePago(const [_efectivo, _credito]);
+  return CarritoController(ajustes: ajustes ?? const AjustesVenta())
+    ..cargarFormasDePago(const [_efectivo, _credito]);
 }
 
 void main() {
@@ -98,7 +97,12 @@ void main() {
   group('regla 2: pasos y topes', () {
     test('el máximo es el stock', () {
       final controlador = _controlador();
-      final producto = _producto(1, 'Lentejas', unidad: 'KILOGRAMO', cantidad: 1);
+      final producto = _producto(
+        1,
+        'Lentejas',
+        unidad: 'KILOGRAMO',
+        cantidad: 1,
+      );
 
       controlador.agregar(producto);
       controlador.agregar(producto);
@@ -110,7 +114,9 @@ void main() {
     test('un producto con medio kilo de stock entra con 0,5', () {
       final controlador = _controlador();
 
-      controlador.agregar(_producto(1, 'Lentejas', unidad: 'KILOGRAMO', cantidad: 0.5));
+      controlador.agregar(
+        _producto(1, 'Lentejas', unidad: 'KILOGRAMO', cantidad: 0.5),
+      );
 
       expect(controlador.lineas.single.cantidad, 0.5);
     });
@@ -126,7 +132,9 @@ void main() {
 
     test('no se puede superar el stock al cambiar la cantidad', () {
       final controlador = _controlador();
-      controlador.agregar(_producto(1, 'Lentejas', unidad: 'KILOGRAMO', cantidad: 4));
+      controlador.agregar(
+        _producto(1, 'Lentejas', unidad: 'KILOGRAMO', cantidad: 4),
+      );
 
       controlador.cambiarCantidad(1, 99);
 

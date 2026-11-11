@@ -29,7 +29,10 @@ ProductoInventario _producto(
 }
 
 Widget _envolver(Widget hijo) {
-  return MaterialApp(theme: construirTema(), home: Scaffold(body: hijo));
+  return MaterialApp(
+    theme: construirTema(),
+    home: Scaffold(body: hijo),
+  );
 }
 
 void main() {
@@ -89,13 +92,7 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      _envolver(
-        const Column(
-          children: [
-            Text('Productos'),
-          ],
-        ),
-      ),
+      _envolver(const Column(children: [Text('Productos')])),
     );
 
     expect(find.text('Productos'), findsOneWidget);
@@ -103,13 +100,7 @@ void main() {
 
   testWidgets('la pantalla muestra el título de la feature', (tester) async {
     await tester.pumpWidget(
-      _envolver(
-        const Column(
-          children: [
-            Text('Registro de ventas'),
-          ],
-        ),
-      ),
+      _envolver(const Column(children: [Text('Registro de ventas')])),
     );
 
     expect(find.text('Registro de ventas'), findsOneWidget);

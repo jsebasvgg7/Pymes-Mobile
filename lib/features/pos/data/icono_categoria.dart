@@ -30,15 +30,27 @@ const Map<String, List<List<dynamic>>> _porClave = {
 
 /// Reglas por palabra clave, las mismas de la web.
 const List<({List<String> claves, String icono})> _reglas = [
-  (claves: ['bebida', 'gaseosa', 'jugo', 'agua', 'cerveza', 'licor', 'cafe'], icono: 'cup-soda'),
-  (claves: ['pan', 'panader', 'pastel', 'reposter', 'torta'], icono: 'croissant'),
+  (
+    claves: ['bebida', 'gaseosa', 'jugo', 'agua', 'cerveza', 'licor', 'cafe'],
+    icono: 'cup-soda',
+  ),
+  (
+    claves: ['pan', 'panader', 'pastel', 'reposter', 'torta'],
+    icono: 'croissant',
+  ),
   (claves: ['aseo', 'limpieza', 'detergente', 'higiene'], icono: 'spray-can'),
   (claves: ['papeler', 'escolar', 'oficina', 'cuaderno'], icono: 'pencil'),
   (claves: ['ferret', 'herramienta', 'tornill', 'construc'], icono: 'wrench'),
-  (claves: ['carne', 'pollo', 'embutido', 'pescado', 'charcuter'], icono: 'beef'),
+  (
+    claves: ['carne', 'pollo', 'embutido', 'pescado', 'charcuter'],
+    icono: 'beef',
+  ),
   (claves: ['lacteo', 'leche', 'queso', 'yogur'], icono: 'milk'),
   (claves: ['fruta', 'verdura', 'hortaliza', 'legumbre'], icono: 'apple'),
-  (claves: ['snack', 'dulce', 'galleta', 'confiter', 'golosina', 'mecato'], icono: 'cookie'),
+  (
+    claves: ['snack', 'dulce', 'galleta', 'confiter', 'golosina', 'mecato'],
+    icono: 'cookie',
+  ),
 ];
 
 List<List<dynamic>> iconoCategoria(String nombre, {String? clave}) {

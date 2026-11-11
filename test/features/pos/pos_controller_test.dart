@@ -34,8 +34,7 @@ class _RepoFalso implements PosRepository {
   }
 
   @override
-  Future<List<CategoriaPos>> categorias(int empresaId) async =>
-      listaCategorias;
+  Future<List<CategoriaPos>> categorias(int empresaId) async => listaCategorias;
 
   @override
   Future<List<FormaPago>> formasDePago(int empresaId) async => listaFormas;

@@ -52,8 +52,7 @@ class PosController extends ChangeNotifier {
     return nuevo;
   }
 
-  bool get hayCajaAbierta =>
-      _cajas.any((caja) => caja.abierta);
+  bool get hayCajaAbierta => _cajas.any((caja) => caja.abierta);
 
   bool get sinCajaAbierta => _cajas.isNotEmpty && !hayCajaAbierta;
 
@@ -63,7 +62,8 @@ class PosController extends ChangeNotifier {
         .split(RegExp(r'\s+'))
         .where((p) => p.isNotEmpty);
     final filtrados = _productos.where((producto) {
-      if (_categoriaElegida != null && producto.categoriaId != _categoriaElegida) {
+      if (_categoriaElegida != null &&
+          producto.categoriaId != _categoriaElegida) {
         return false;
       }
       if (palabras.isEmpty) return true;

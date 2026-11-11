@@ -70,8 +70,14 @@ void main() {
 
     final productos = await repositorio.productos(7);
 
-    expect(adaptador.peticiones.first.path, '/api/productos/listar-por-empresa/7');
-    expect(adaptador.peticiones.first.queryParameters, {'page': 0, 'size': 200});
+    expect(
+      adaptador.peticiones.first.path,
+      '/api/productos/listar-por-empresa/7',
+    );
+    expect(adaptador.peticiones.first.queryParameters, {
+      'page': 0,
+      'size': 200,
+    });
     expect(productos.length, 1);
     expect(productos.first.productoId, 9);
     expect(productos.first.nombre, 'Lentejas');
@@ -129,21 +135,24 @@ void main() {
     expect(clientes.first.documento, '109999');
   });
 
-  test('los ajustes traen moneda, cliente obligatorio y nombre del recibo', () async {
-    final repositorio = _construir(
-      '{"empresaId":7,"moneda":"COP","simboloMoneda":"\$",'
-      '"clienteObligatorio":true,"nombreRecibo":"SuperMarket V",'
-      '"mensajePieRecibo":"Gracias por su compra"}',
-    );
+  test(
+    'los ajustes traen moneda, cliente obligatorio y nombre del recibo',
+    () async {
+      final repositorio = _construir(
+        '{"empresaId":7,"moneda":"COP","simboloMoneda":"\$",'
+        '"clienteObligatorio":true,"nombreRecibo":"SuperMarket V",'
+        '"mensajePieRecibo":"Gracias por su compra"}',
+      );
 
-    final ajustes = await repositorio.ajustes(7);
+      final ajustes = await repositorio.ajustes(7);
 
-    expect(ajustes.moneda, 'COP');
-    expect(ajustes.simboloMoneda, r'$');
-    expect(ajustes.clienteObligatorio, isTrue);
-    expect(ajustes.nombreRecibo, 'SuperMarket V');
-    expect(ajustes.mensajePieRecibo, 'Gracias por su compra');
-  });
+      expect(ajustes.moneda, 'COP');
+      expect(ajustes.simboloMoneda, r'$');
+      expect(ajustes.clienteObligatorio, isTrue);
+      expect(ajustes.nombreRecibo, 'SuperMarket V');
+      expect(ajustes.mensajePieRecibo, 'Gracias por su compra');
+    },
+  );
 
   test('los ajustes sin símbolo usan el del dólar', () async {
     final repositorio = _construir('{"moneda":"COP","simboloMoneda":""}');
@@ -175,60 +184,63 @@ void main() {
     expect(await repositorio.nombreEmpresa(7), 'SuperMarket V');
   });
 
-  test('crear la venta manda empresa, forma de pago, descuento y detalles', () async {
-    final adaptador = _Adaptador(
-      '{"id":31,"numero":"FAC-20261110-29091","estado":"EMITIDA",'
-      '"fechaEmision":"2026-11-10T18:57:12","clienteNombre":"Don Carlos",'
-      '"formaPagoNombre":"Efectivo","subtotal":31400,"descuento":1000,'
-      '"total":30400,"detalles":[{"productoId":9,"descripcion":"Lentejas",'
-      '"cantidad":0.5,"precioUnitario":6800,"totalLinea":3400}]}',
-    );
-    final cliente = ApiClient(almacen: _Almacen());
-    cliente.dio.httpClientAdapter = adaptador;
-    final repositorio = PosRepository(cliente: cliente);
+  test(
+    'crear la venta manda empresa, forma de pago, descuento y detalles',
+    () async {
+      final adaptador = _Adaptador(
+        '{"id":31,"numero":"FAC-20261110-29091","estado":"EMITIDA",'
+        '"fechaEmision":"2026-11-10T18:57:12","clienteNombre":"Don Carlos",'
+        '"formaPagoNombre":"Efectivo","subtotal":31400,"descuento":1000,'
+        '"total":30400,"detalles":[{"productoId":9,"descripcion":"Lentejas",'
+        '"cantidad":0.5,"precioUnitario":6800,"totalLinea":3400}]}',
+      );
+      final cliente = ApiClient(almacen: _Almacen());
+      cliente.dio.httpClientAdapter = adaptador;
+      final repositorio = PosRepository(cliente: cliente);
 
-    final venta = await repositorio.crearVenta(
-      empresaId: 7,
-      formaPagoId: 1,
-      clienteId: 8,
-      descuento: 1000,
-      lineas: const [
-        LineaVenta(
-          productoId: 9,
-          descripcion: 'Lentejas',
-          cantidad: 0.5,
-          precioUnitario: 6800,
-        ),
-      ],
-    );
+      final venta = await repositorio.crearVenta(
+        empresaId: 7,
+        formaPagoId: 1,
+        clienteId: 8,
+        descuento: 1000,
+        lineas: const [
+          LineaVenta(
+            productoId: 9,
+            descripcion: 'Lentejas',
+            cantidad: 0.5,
+            precioUnitario: 6800,
+          ),
+        ],
+      );
 
-    final peticion = adaptador.peticiones.first;
-    expect(peticion.method, 'POST');
-    expect(peticion.path, '/api/facturas-venta/crear');
-    final cuerpo = peticion.data as Map<String, dynamic>;
-    expect(cuerpo['empresaId'], 7);
-    expect(cuerpo['formaPagoId'], 1);
-    expect(cuerpo['clienteId'], 8);
-    expect(cuerpo['descuento'], 1000);
-    final detalles = cuerpo['detalles'] as List;
-    expect(detalles.length, 1);
-    expect((detalles.first as Map<String, dynamic>)['productoId'], 9);
-    expect(detalles.first['cantidad'], 0.5);
-    expect(detalles.first['descripcion'], 'Lentejas');
-    expect(detalles.first.containsKey('impuestoIds'), isFalse);
+      final peticion = adaptador.peticiones.first;
+      expect(peticion.method, 'POST');
+      expect(peticion.path, '/api/facturas-venta/crear');
+      final cuerpo = peticion.data as Map<String, dynamic>;
+      expect(cuerpo['empresaId'], 7);
+      expect(cuerpo['formaPagoId'], 1);
+      expect(cuerpo['clienteId'], 8);
+      expect(cuerpo['descuento'], 1000);
+      final detalles = cuerpo['detalles'] as List;
+      expect(detalles.length, 1);
+      expect((detalles.first as Map<String, dynamic>)['productoId'], 9);
+      expect(detalles.first['cantidad'], 0.5);
+      expect(detalles.first['descripcion'], 'Lentejas');
+      expect(detalles.first.containsKey('impuestoIds'), isFalse);
 
-    expect(venta.id, 31);
-    expect(venta.numero, 'FAC-20261110-29091');
-    expect(venta.estado, 'EMITIDA');
-    expect(venta.clienteNombre, 'Don Carlos');
-    expect(venta.formaPagoNombre, 'Efectivo');
-    expect(venta.subtotal, 31400);
-    expect(venta.descuento, 1000);
-    expect(venta.total, 30400);
-    expect(venta.fechaEmision, isNotNull);
-    expect(venta.detalles.length, 1);
-    expect(venta.detalles.first.totalLinea, 3400);
-  });
+      expect(venta.id, 31);
+      expect(venta.numero, 'FAC-20261110-29091');
+      expect(venta.estado, 'EMITIDA');
+      expect(venta.clienteNombre, 'Don Carlos');
+      expect(venta.formaPagoNombre, 'Efectivo');
+      expect(venta.subtotal, 31400);
+      expect(venta.descuento, 1000);
+      expect(venta.total, 30400);
+      expect(venta.fechaEmision, isNotNull);
+      expect(venta.detalles.length, 1);
+      expect(venta.detalles.first.totalLinea, 3400);
+    },
+  );
 
   test('crear la venta sin cliente no manda el campo', () async {
     final adaptador = _Adaptador('{"id":31,"total":1000}');
@@ -313,7 +325,11 @@ void main() {
     expect(adaptador.peticiones.length, 1);
   });
 
-  test('un error del servidor se lanza como ApiException', () async {    final repositorio = _construir('{"message":"Stock insuficiente"}', status: 400);
+  test('un error del servidor se lanza como ApiException', () async {
+    final repositorio = _construir(
+      '{"message":"Stock insuficiente"}',
+      status: 400,
+    );
 
     await expectLater(
       repositorio.crearVenta(
