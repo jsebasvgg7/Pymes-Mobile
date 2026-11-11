@@ -8,8 +8,6 @@ import 'carrito_controller.dart';
 import 'ultimo_paso_sheet.dart';
 import 'widgets/tarjeta_linea_carrito.dart';
 
-/// Abre el carrito como pantalla completa sobre el shell, igual que el
-/// buscador, compartiendo el carrito con la pantalla de registro de ventas.
 Future<void> abrirCarrito(BuildContext context, CarritoController carrito) {
   return Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
@@ -38,72 +36,84 @@ class _VistaCarrito extends StatelessWidget {
     final carrito = context.watch<CarritoController>();
 
     return Scaffold(
-      backgroundColor: superficie,
-      appBar: AppBar(
-        backgroundColor: superficie,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
+      backgroundColor: papel,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
           children: [
-            const Flexible(
-              child: Text(
-                'Carrito',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
+            _Encabezado(cantidad: carrito.cantidadProductos),
+            Expanded(
+              child: carrito.cantidadProductos == 0
+                  ? const _CarritoVacio()
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      itemCount: carrito.lineas.length,
+                      itemBuilder: (context, indice) {
+                        return TarjetaLineaCarrito(
+                          item: carrito.lineas[indice],
+                          carrito: carrito,
+                        );
+                      },
+                    ),
+            ),
+            if (carrito.cantidadProductos > 0) _Pie(carrito: carrito),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Encabezado extends StatelessWidget {
+  const _Encabezado({required this.cantidad});
+
+  final int cantidad;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 44),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Carrito',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                Text(
+                  cantidad == 1 ? '1 Producto' : '$cantidad Productos',
+                  style: const TextStyle(fontSize: 13, color: textoSecundario),
+                ),
+              ],
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                tooltip: 'Cerrar',
+                onPressed: () => Navigator.of(context).maybePop(),
+                style: IconButton.styleFrom(
+                  backgroundColor: papel,
+                  fixedSize: const Size(44, 44),
+                  side: const BorderSide(color: tintaPrincipal, width: 1.5),
+                ),
+                icon: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedCancel01,
+                  color: tintaPrincipal,
+                  size: 20,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            Text(
-              '${carrito.cantidadProductos} productos',
-              style: const TextStyle(fontSize: 13, color: textoSecundario),
-            ),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: 'Cerrar',
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: const HugeIcon(
-              icon: HugeIcons.strokeRoundedCancel01,
-              color: tintaPrincipal,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (carrito.cantidadProductos > 0)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: Text(
-                'Desliza una tarjeta hacia la izquierda para quitar el producto.',
-                style: TextStyle(fontSize: 13, color: textoSecundario),
-              ),
-            ),
-          Expanded(
-            child: carrito.cantidadProductos == 0
-                ? const _CarritoVacio()
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                    itemCount: carrito.lineas.length,
-                    itemBuilder: (context, indice) {
-                      return TarjetaLineaCarrito(
-                        item: carrito.lineas[indice],
-                        carrito: carrito,
-                      );
-                    },
-                  ),
-          ),
-          if (carrito.cantidadProductos > 0) _Pie(carrito: carrito),
-        ],
       ),
     );
   }
@@ -116,17 +126,10 @@ class _Pie extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final simbolo = carrito.ajustes.simboloMoneda;
-    final decimales = decimalesDeMoneda(carrito.ajustes.moneda);
     final subtotal = formatearMonedaConfigurada(
       carrito.subtotal,
-      simbolo: simbolo,
-      decimales: decimales,
-    );
-    final total = formatearMonedaConfigurada(
-      carrito.total,
-      simbolo: simbolo,
-      decimales: decimales,
+      simbolo: carrito.ajustes.simboloMoneda,
+      decimales: decimalesDeMoneda(carrito.ajustes.moneda),
     );
 
     return Container(
@@ -142,6 +145,7 @@ class _Pie extends StatelessWidget {
         border: Border(top: BorderSide(color: linea)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
@@ -159,8 +163,8 @@ class _Pie extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 14),
           if (carrito.ventaRegistrada != null) ...[
-            const SizedBox(height: 14),
             OutlinedButton(
               onPressed: carrito.enviando ? null : () => _anular(context),
               style: OutlinedButton.styleFrom(
@@ -176,8 +180,8 @@ class _Pie extends StatelessWidget {
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
             ),
+            const SizedBox(height: 12),
           ],
-          const SizedBox(height: 14),
           FilledButton(
             onPressed: () => mostrarUltimoPaso(context, carrito),
             style: FilledButton.styleFrom(
@@ -185,32 +189,10 @@ class _Pie extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 20),
             ),
-            child: Row(
-              children: [
-                const Flexible(
-                  child: Text(
-                    'Ultimo paso',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Flexible(
-                  child: Text(
-                    total,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+            child: const Text(
+              'Último paso',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -231,7 +213,6 @@ class _Pie extends StatelessWidget {
       );
     }
   }
-
 }
 
 class _CarritoVacio extends StatelessWidget {
@@ -259,7 +240,7 @@ class _CarritoVacio extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Tu carrito esta vacio',
+            'Tu carrito está vacío',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),

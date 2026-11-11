@@ -50,10 +50,17 @@ class PosController extends ChangeNotifier {
     final nuevo = CarritoController(
       ajustes: _ajustes,
       repositorio: _repositorio,
+      iconosCategoria: _iconosCategoria,
     );
     _carrito = nuevo;
     return nuevo;
   }
+
+  Map<int, String> get _iconosCategoria => {
+    for (final categoria in _categorias)
+      if (categoria.icono != null && categoria.icono!.isNotEmpty)
+        categoria.id: categoria.icono!,
+  };
 
   bool get hayCajaAbierta => _cajas.any((caja) => caja.abierta);
 
@@ -112,6 +119,7 @@ class PosController extends ChangeNotifier {
       _carrito = CarritoController(
         ajustes: ajustes,
         repositorio: _repositorio,
+        iconosCategoria: _iconosCategoria,
       )
         ..cargarFormasDePago(formas)
         ..cargarClientes(clientes);

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../core/format/cantidad.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/productos/producto_inventario.dart';
+import '../data/icono_categoria.dart';
 import '../data/models/ajustes_venta.dart';
 import '../data/models/cliente_pos.dart';
 import '../data/models/forma_pago.dart';
@@ -28,11 +29,17 @@ class LineaCarrito {
 enum EstadoVenta { vacio, listo, error }
 
 class CarritoController extends ChangeNotifier {
-  CarritoController({required this.ajustes, this._repositorio});
+  CarritoController({
+    required this.ajustes,
+    this._repositorio,
+    this.iconosCategoria = const {},
+  });
+
   static const double _pasoDecimal = 0.5;
   static const int _maxDecimales = 3;
 
   final AjustesVenta ajustes;
+  final Map<int, String> iconosCategoria;
   final PosRepository? _repositorio;
 
   final List<LineaCarrito> _lineas = [];
@@ -61,10 +68,8 @@ class CarritoController extends ChangeNotifier {
 
   String? get error => _error;
 
-  /// La venta ya registrada, si la hay.
   VentaCreada? get ventaRegistrada => _ventaRegistrada;
 
-  /// Si se esta enviando la venta.
   bool get enviando => _enviando;
 
   bool get vacio => _lineas.isEmpty;
@@ -128,19 +133,22 @@ class CarritoController extends ChangeNotifier {
     return total;
   }
 
-  /// Si se puede restar un paso a la linea sin llegar a cero.
-  /// Si la linea ya llego al tope de stock.
   bool llegoAlTope(LineaCarrito linea) => linea.cantidad >= linea.producto.cantidadActual;
 
-  /// El precio de una unidad, como lo muestra el carrito ("$ 6.800 / kg").
   num precioUnitario(LineaCarrito linea) => linea.producto.precioVenta;
 
-  /// El nombre corto de la unidad ("kg", "und", "L").
   String unidad(LineaCarrito linea) =>
       abreviarUnidad(linea.producto.unidadMedida, linea.producto.cantidadActual);
 
-  /// Si la linea esta en el tope y no se puede subir mas.
   bool puedeSubir(LineaCarrito linea) => !llegoAlTope(linea);
+
+  List<List<dynamic>> iconoDe(ProductoInventario producto) {
+    final id = producto.categoriaId;
+    return iconoCategoria(
+      producto.categoria.toString(),
+      clave: id == null ? null : iconosCategoria[id],
+    );
+  }
 
   void cargarFormasDePago(List<FormaPago> formas) {
     _formasPago = formas.where((forma) => forma.activo).toList();
@@ -234,7 +242,6 @@ class CarritoController extends ChangeNotifier {
     return cambiarCantidad(productoId, linea.cantidad - paso);
   }
 
-  /// Si se puede restar un paso sin llegar a cero, igual que en la web.
   bool puedeBajar(LineaCarrito linea) {
     final paso = pasoDe(linea.producto);
     return linea.producto.permiteDecimales
@@ -296,8 +303,6 @@ class CarritoController extends ChangeNotifier {
     _notificar();
   }
 
-  /// Registra la venta. Nunca se reintenta solo (regla 17 del plan): si la
-  /// respuesta no llega, se avisa para revisar las ventas antes de repetir.
   Future<VentaCreada?> registrarVenta(int empresaId) async {
     final repositorio = _repositorio;
     final formaPagoId = _formaPagoId;
@@ -344,7 +349,6 @@ class CarritoController extends ChangeNotifier {
     }
   }
 
-  /// Anula la venta registrada.
   Future<bool> anularVenta() async {
     final repositorio = _repositorio;
     final venta = _ventaRegistrada;
@@ -375,7 +379,6 @@ class CarritoController extends ChangeNotifier {
     }
   }
 
-  /// Descarta la venta registrada y deja el carrito listo para otra.
   void nuevaVenta() {
     _ventaRegistrada = null;
     limpiar();
