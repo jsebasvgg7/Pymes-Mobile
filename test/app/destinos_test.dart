@@ -35,9 +35,9 @@ void main() {
     ]);
   });
 
-  test('Inicio e Inventario están disponibles en esta casilla', () {
+  test('Inicio, Inventario y POS están disponibles', () {
     final disponibles = destinos.where((d) => d.disponible).map((d) => d.id);
-    expect(disponibles.toList(), ['inicio', 'inventario']);
+    expect(disponibles.toList(), ['inicio', 'pos', 'inventario']);
   });
 
   test('destinoPorId encuentra destinos y desconoce otros ids', () {

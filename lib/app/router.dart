@@ -9,6 +9,7 @@ import '../features/auth/presentation/registro_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/inventario/presentation/inventario_controller.dart';
 import '../features/inventario/presentation/inventario_page.dart';
+import '../features/pos/presentation/registro_ventas_page.dart';
 import 'shell/shell_page.dart';
 
 GoRouter construirRouter(AuthController auth, BienvenidaController bienvenida) {
@@ -43,6 +44,10 @@ GoRouter construirRouter(AuthController auth, BienvenidaController bienvenida) {
                   ? FiltroStock.stockBajo
                   : FiltroStock.todos,
             ),
+          ),
+          GoRoute(
+            path: '/pos',
+            builder: (context, state) => const RegistroVentasPage(),
           ),
         ],
       ),

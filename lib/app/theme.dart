@@ -8,6 +8,9 @@ const Color superficie = Color(0xFFF2F3F5);
 const Color positivo = Color(0xFF15803D);
 const Color atencion = Color(0xFFB45309);
 const Color negativo = Color(0xFFB91C1C);
+const Color alerta = Color(0xFFFF0000);
+const Color borrado = Color(0xFFE8D5D5);
+const Color borradoIcono = Color(0xFFC14F47);
 
 ThemeData construirTema() {
   return ThemeData(

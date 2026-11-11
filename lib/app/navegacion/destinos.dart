@@ -18,6 +18,7 @@ const List<Destino> destinos = [
     nombre: 'Ventas (POS)',
     icono: HugeIcons.strokeRoundedComputer,
     grupo: GrupoDestino.barra,
+    ruta: '/pos',
     sinonimos: [
       'vender',
       'venta',

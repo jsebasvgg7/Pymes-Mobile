@@ -10,6 +10,7 @@ import '../features/auth/presentation/auth_controller.dart';
 import '../features/auth/presentation/bienvenida_controller.dart';
 import '../features/dashboard/data/dashboard_repository.dart';
 import '../features/inventario/data/inventario_repository.dart';
+import '../features/pos/data/pos_repository.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -23,6 +24,7 @@ class App extends StatefulWidget {
     required this.bienvenida,
     required this.repositorioDashboard,
     required this.repositorioInventario,
+    required this.repositorioPos,
   });
 
   final SessionStorage almacen;
@@ -32,6 +34,7 @@ class App extends StatefulWidget {
   final BienvenidaController bienvenida;
   final DashboardRepository repositorioDashboard;
   final InventarioRepository repositorioInventario;
+  final PosRepository repositorioPos;
 
   @override
   State<App> createState() => _AppState();
@@ -59,6 +62,7 @@ class _AppState extends State<App> {
         Provider<InventarioRepository>.value(
           value: widget.repositorioInventario,
         ),
+        Provider<PosRepository>.value(value: widget.repositorioPos),
       ],
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
