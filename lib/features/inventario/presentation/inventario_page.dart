@@ -55,7 +55,7 @@ class _VistaInventarioState extends State<_VistaInventario> {
 
     switch (controlador.estado) {
       case EstadoInventario.cargando:
-        return const EstadoCarga();
+        return const EstadoCarga(mensaje: 'Contando tus productos');
       case EstadoInventario.error:
         return EstadoError(
           mensaje: controlador.error ?? 'No pudimos cargar el inventario.',

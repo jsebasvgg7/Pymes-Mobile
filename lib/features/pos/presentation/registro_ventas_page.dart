@@ -52,7 +52,7 @@ class _VistaRegistroVentasState extends State<_VistaRegistroVentas> {
 
     switch (controlador.estado) {
       case EstadoPos.cargando:
-        return const EstadoCarga();
+        return const EstadoCarga(mensaje: 'Preparando punto de ventas');
       case EstadoPos.error:
         return EstadoError(
           mensaje: controlador.error ?? 'No pudimos cargar el punto de venta.',

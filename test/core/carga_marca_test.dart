@@ -45,9 +45,7 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: Center(
-            child: CargaMarca(tamano: 24, conBarrido: false),
-          ),
+          body: Center(child: CargaMarca(tamano: 24, conBarrido: false)),
         ),
       ),
     );
@@ -60,13 +58,29 @@ void main() {
 
   testWidgets('el estado de carga usa la marca', (tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(body: EstadoCarga()),
-      ),
+      const MaterialApp(home: Scaffold(body: EstadoCarga())),
     );
 
     expect(find.byType(CargaMarca), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('el estado de carga muestra el mensaje debajo de la marca', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: EstadoCarga(mensaje: 'Cargando tus gráficas')),
+      ),
+    );
+
+    expect(find.text('Cargando tus gráficas'), findsOneWidget);
+
+    final marca = tester.getRect(find.byType(CargaMarca));
+    final texto = tester.getRect(find.text('Cargando tus gráficas'));
+
+    expect(texto.top, greaterThan(marca.bottom));
+    expect(texto.center.dx, closeTo(marca.center.dx, 1));
   });
 
   testWidgets('el estado de carga queda arriba y es pequeño', (tester) async {

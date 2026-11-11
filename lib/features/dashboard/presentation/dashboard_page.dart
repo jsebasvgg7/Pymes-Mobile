@@ -47,14 +47,16 @@ class _VistaDashboard extends StatelessWidget {
 
     switch (controlador.estado) {
       case EstadoDashboard.cargando:
-        return const EstadoCarga();
+        return const EstadoCarga(mensaje: 'Cargando tus gráficas');
       case EstadoDashboard.error:
         return EstadoError(
           mensaje: controlador.error ?? 'No pudimos cargar el resumen.',
           alReintentar: controlador.cargar,
         );
       case EstadoDashboard.listo:
-        if (resumen == null) return const EstadoCarga();
+        if (resumen == null) {
+          return const EstadoCarga(mensaje: 'Cargando tus gráficas');
+        }
         return RefreshIndicator(
           color: tintaPrincipal,
           backgroundColor: papel,
