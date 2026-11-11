@@ -41,6 +41,7 @@ const List<Destino> destinos = [
     nombre: 'Caja',
     icono: HugeIcons.strokeRoundedWallet01,
     grupo: GrupoDestino.barra,
+    ruta: '/caja',
     sinonimos: ['efectivo', 'dinero', 'apertura', 'cierre', 'gasto'],
   ),
   Destino(

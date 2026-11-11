@@ -8,6 +8,7 @@ import '../core/storage/session_storage.dart';
 import '../features/auth/data/auth_repository.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/auth/presentation/bienvenida_controller.dart';
+import '../features/caja/data/caja_repository.dart';
 import '../features/dashboard/data/dashboard_repository.dart';
 import '../features/inventario/data/inventario_repository.dart';
 import '../features/pos/data/pos_repository.dart';
@@ -23,6 +24,7 @@ class App extends StatefulWidget {
     required this.auth,
     required this.bienvenida,
     required this.repositorioDashboard,
+    required this.repositorioCaja,
     required this.repositorioInventario,
     required this.repositorioPos,
   });
@@ -33,6 +35,7 @@ class App extends StatefulWidget {
   final AuthController auth;
   final BienvenidaController bienvenida;
   final DashboardRepository repositorioDashboard;
+  final CajaRepository repositorioCaja;
   final InventarioRepository repositorioInventario;
   final PosRepository repositorioPos;
 
@@ -59,6 +62,7 @@ class _AppState extends State<App> {
         ChangeNotifierProvider<AuthController>.value(value: widget.auth),
         Provider<BienvenidaController>.value(value: widget.bienvenida),
         Provider<DashboardRepository>.value(value: widget.repositorioDashboard),
+        Provider<CajaRepository>.value(value: widget.repositorioCaja),
         Provider<InventarioRepository>.value(
           value: widget.repositorioInventario,
         ),

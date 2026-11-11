@@ -6,6 +6,7 @@ import '../features/auth/presentation/bienvenida_controller.dart';
 import '../features/auth/presentation/bienvenida_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/registro_page.dart';
+import '../features/caja/presentation/caja_page.dart';
 import '../features/dashboard/presentation/dashboard_page.dart';
 import '../features/inventario/presentation/inventario_controller.dart';
 import '../features/inventario/presentation/inventario_page.dart';
@@ -49,6 +50,7 @@ GoRouter construirRouter(AuthController auth, BienvenidaController bienvenida) {
             path: '/pos',
             builder: (context, state) => const RegistroVentasPage(),
           ),
+          GoRoute(path: '/caja', builder: (context, state) => const CajaPage()),
         ],
       ),
       GoRoute(
